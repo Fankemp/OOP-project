@@ -1,4 +1,5 @@
 package university.enums;
 
-public class NewTopic {
+public enum NewTopic {
+    RESEARCH, ANNOUNCEMENT, GENERAL;
 }

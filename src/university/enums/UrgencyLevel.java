@@ -1,4 +1,5 @@
 package university.enums;
 
-public class UrgencyLevel {
+public enum UrgencyLevel {
+    LOW, MEDIUM, HIGH;
 }

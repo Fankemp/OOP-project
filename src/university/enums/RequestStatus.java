@@ -1,4 +1,5 @@
 package university.enums;
 
-public class RequestStatus {
+public enum RequestStatus {
+    NEW, VIEW, ACCEPTED, REJECTED, DONE;
 }

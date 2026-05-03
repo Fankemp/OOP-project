@@ -1,4 +1,5 @@
 package university.enums;
 
-public class Language {
+public enum Language {
+    RU, KZ, ENG;
 }

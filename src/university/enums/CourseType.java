@@ -1,4 +1,5 @@
 package university.enums;
 
-public class CourseType {
+public enum CourseType {
+    MAJOR, MINOR, FREE_ELECTIVE;
 }

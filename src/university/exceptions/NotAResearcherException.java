@@ -1,4 +1,7 @@
 package university.exceptions;
 
-public class NotAResearcherException {
+public class NotAResearcherException extends Exception {
+    public NotAResearcherException(String message) {
+        super(message);
+    }
 }

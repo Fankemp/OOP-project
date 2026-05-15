@@ -1,4 +1,5 @@
 package university.communications;
 
-public class Subscriber {
+public interface Subscriber {
+    void update(String message);
 }

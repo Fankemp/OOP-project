@@ -1,4 +1,4 @@
-package university.user;
+package university.users;
 
 import university.enums.ManagerType;
 import university.academic.Course;

@@ -1,4 +1,4 @@
-package university.user;
+package university.users;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -57,10 +57,7 @@ public class Admin extends Employee {
         System.out.printf("[Admin %s] Updated user: %s%n", getFullName(), updatedUser);
     }
 
-    /**
-     * Reads and prints the contents of the system log file line by line.
-     * Returns the lines as a list for programmatic use as well.
-     */
+
     public List<String> viewLogs() {
         List<String> lines = new ArrayList<>();
         System.out.printf("[Admin %s] === System Logs (%s) ===%n", getFullName(), logFilePath);
@@ -100,14 +97,6 @@ public class Admin extends Employee {
         return super.hashCode();
     }
 
-    // -------------------------------------------------------------------------
-    // Inner helper interface – keeps Admin decoupled from any specific storage
-    // -------------------------------------------------------------------------
-
-    /**
-     * Simple registry contract so Admin doesn't depend on a concrete data store.
-     * Implement this with whatever pattern (Singleton, Repository, etc.) the team uses.
-     */
     public interface UserRegistry {
         void add(User user);
         boolean removeById(String id);

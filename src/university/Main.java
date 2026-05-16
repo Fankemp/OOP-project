@@ -5,6 +5,7 @@ import university.academic.Course;
 import university.enums.*;
 import university.exceptions.MaxCreditsException;
 import university.exceptions.CourseFailLimitException;
+import university.storage.UserFactory;
 import university.users.*;
 
 import java.util.Optional;
@@ -226,29 +227,29 @@ public class Main {
         }
     }
 
-    /**
-     * Генерация реальных объектов системы для демонстрации сквозных процессов
-     */
-    private static void initSystemData() throws MaxCreditsException {
-        // Создаем курсы
+
+    private static void initSystemData() {
         Course oop = new Course("CSCI2101", "Object-Oriented Programming", 5, CourseType.MAJOR);
         university.addCourse(oop);
 
-        // Инициализируем по одному представителю каждой роли с общим паролем "123"
-        // (Параметры конструкторов подстроятся автоматически под коммит твоего тиммейта)
-        Admin admin = new Admin("A001", "Иван", "Админов", "admin@kbtu.kz", "admin", "123", 500000.0);
+        Admin admin = UserFactory.createAdmin("A001", "Иван", "Админов", "admin@kbtu.kz", "admin", "123", 500000.0);
         university.addUser(admin);
 
-        Manager manager = new Manager("M001", "Дана", "Менеджерова", "manager@kbtu.kz", "manager", "123", 450000.0, ManagerType.OR);
+        Manager manager = UserFactory.createManager("M001", "Дана", "Менеджерова", "manager@kbtu.kz", "manager", "123", 450000.0, ManagerType.OR);
         university.addUser(manager);
 
-        Teacher teacher = new Teacher("T001", "Пакита", "Шамилова", "p_shamilova@kbtu.kz", "teacher", "123", 750000.0, TeacherPosition.PROFESSOR);
+        Teacher teacher = UserFactory.createTeacher("T001", "Пакита", "Шамилова", "p_shamilova@kbtu.kz", "teacher", "123", 750000.0, "SITE", TeacherPosition.PROFESSOR);
         teacher.manageCourse(oop);
         oop.addTeacher(teacher, LessonType.LECTURE);
         university.addUser(teacher);
 
-        Student student = new Student("S123", "Алихан", "Инкарбеков", "a_inkarbekov@kbtu.kz", "student", "123", "SITE", 2);
+        Student student = UserFactory.createStudent("S123", "Алихан", "Инкарбеков", "a_inkarbekov@kbtu.kz", "student", "123", "SITE", 2);
         university.addUser(student);
-        university.enrollStudentInCourse(student, oop);
+
+        try {
+            university.enrollStudentInCourse(student, oop);
+        } catch (Exception ex) {
+            System.out.println("⚠️ Ошибка инициализации: " + ex.getMessage());
+        }
     }
 }

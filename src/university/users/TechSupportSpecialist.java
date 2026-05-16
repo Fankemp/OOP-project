@@ -14,17 +14,10 @@ public class TechSupportSpecialist extends Employee {
     public TechSupportSpecialist(String id, String firstName, String lastName,
                                  String email, String login, String password,
                                  double salary) {
-        super(id, firstName, lastName, email, login, password, salary);
+        super(id, firstName, lastName, email, login, password, salary, "IT");
         this.assignedRequests = new ArrayList<>();
     }
 
-    /**
-     * Displays all NEW requests from the provided queue and marks each
-     * one as VIEWED as it is read — simulating the real "opening a ticket" flow.
-     *
-     * @param requestQueue the shared queue of all incoming requests
-     * @return the list of requests that were in NEW status (now VIEWED)
-     */
     public List<Request> viewNewRequests(List<Request> requestQueue) {
         List<Request> newRequests = requestQueue.stream()
                 .filter(r -> r.getStatus() == RequestStatus.NEW)
@@ -43,10 +36,6 @@ public class TechSupportSpecialist extends Employee {
         return newRequests;
     }
 
-    /**
-     * Accepts a request: status → ACCEPTED, request is added to this
-     * specialist's personal assignment list.
-     */
     public void acceptRequest(Request request) {
         validateRequest(request);
         request.updateStatus(RequestStatus.ACCEPTED);
@@ -57,12 +46,7 @@ public class TechSupportSpecialist extends Employee {
                 getFullName(), request.getId(), request.getDescription());
     }
 
-    /**
-     * Rejects a request: status → REJECTED.
-     * The request is NOT added to the specialist's assignment list.
-     *
-     * @param reason optional reason for rejection (can be null)
-     */
+
     public void rejectRequest(Request request, String reason) {
         validateRequest(request);
         request.updateStatus(RequestStatus.REJECTED);
@@ -71,14 +55,10 @@ public class TechSupportSpecialist extends Employee {
                 getFullName(), request.getId(), msg);
     }
 
-    /** Overload without reason. */
     public void rejectRequest(Request request) {
         rejectRequest(request, null);
     }
 
-    /**
-     * Marks an accepted request as DONE once the issue is resolved.
-     */
     public void markDone(Request request) {
         validateRequest(request);
         if (request.getStatus() != RequestStatus.ACCEPTED) {

@@ -1,4 +1,4 @@
-package university.user;
+package university.users;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

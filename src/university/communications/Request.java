@@ -1,105 +1,97 @@
 package university.communications;
 
 import university.users.User;
+import university.enums.RequestStatus; // Импортируем Enum, который требует техподдержка
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+
 public class Request implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2026L;
 
-    public static final String NEW = "NEW";
-    public static final String VIEWED = "VIEWED";
-    public static final String ACCEPTED = "ACCEPTED";
-    public static final String REJECTED = "REJECTED";
-    public static final String DONE = "DONE";
-
+    private String id;
     private User sender;
     private String description;
-    private String status;
+
+    private RequestStatus status;
     private LocalDateTime createdAt;
 
     public Request(User sender, String description) {
         this.sender = sender;
         this.description = description;
-        this.status = NEW;
+        this.status = RequestStatus.NEW;
         this.createdAt = LocalDateTime.now();
+
+        this.id = "REQ-" + Math.abs(Objects.hash(sender, description, createdAt)) % 10000;
     }
 
-    public User getSender() {
-        return sender;
+    public String getId() { return id; }
+
+    public RequestStatus getStatus() { return status; }
+
+    public void updateStatus(RequestStatus newStatus) {
+        if (newStatus == null) throw new IllegalArgumentException("Статус не может быть null");
+        this.status = newStatus;
     }
 
-    public String getDescription() {
-        return description;
-    }
+    public User getSender() { return sender; }
 
-    public String getStatus() {
-        return status;
-    }
+    public String getDescription() { return description; }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
 
     public void view() {
-        if (status.equals(NEW)) {
-            status = VIEWED;
+        if (status == RequestStatus.NEW) {
+            status = RequestStatus.VIEWED;
         }
     }
 
     public void accept() {
-        if (status.equals(NEW)) {
+        if (status == RequestStatus.NEW) {
             view();
         }
-
-        if (status.equals(VIEWED)) {
-            status = ACCEPTED;
+        if (status == RequestStatus.VIEWED) {
+            status = RequestStatus.ACCEPTED;
         }
     }
 
     public void reject() {
-        if (status.equals(NEW)) {
+        if (status == RequestStatus.NEW) {
             view();
         }
-
-        if (status.equals(VIEWED)) {
-            status = REJECTED;
+        if (status == RequestStatus.VIEWED) {
+            status = RequestStatus.REJECTED;
         }
     }
 
     public void markAsDone() {
-        if (status.equals(ACCEPTED)) {
-            status = DONE;
+        if (status == RequestStatus.ACCEPTED) {
+            status = RequestStatus.DONE;
         }
     }
 
     @Override
     public String toString() {
-        return "Request{" +
-                "sender=" + sender +
-                ", description='" + description + '\'' +
-                ", status='" + status + '\'' +
-                ", createdAt=" + createdAt +
-                '}';
+        return String.format("Request{id='%s', sender=%s, description='%s', status=%s, date=%s}",
+                id, sender.getFullName(), description, status, createdAt);
     }
 
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof Request)) return false;
-
         Request request = (Request) obj;
-
-        return Objects.equals(sender, request.sender) &&
+        return Objects.equals(id, request.id) &&
+                Objects.equals(sender, request.sender) &&
                 Objects.equals(description, request.description) &&
-                Objects.equals(status, request.status) &&
+                status == request.status &&
                 Objects.equals(createdAt, request.createdAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(sender, description, status, createdAt);
+        return Objects.hash(id, sender, description, status, createdAt);
     }
 }

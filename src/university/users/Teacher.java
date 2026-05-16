@@ -1,4 +1,4 @@
-package university.user;
+package university.users;
 
 import university.enums.*;
 import university.academic.*;
@@ -7,7 +7,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Teacher extends Employee implements Researcher {
+public class  Teacher extends Employee implements Researcher {
     private static final Logger TEACHER_LOGGER = Logger.getLogger(Teacher.class.getName());
 
     private TeacherPosition position;

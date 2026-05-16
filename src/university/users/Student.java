@@ -1,4 +1,4 @@
-package university.user;
+package university.users;
 
 import java.util.*;
 import java.util.logging.Level;

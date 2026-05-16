@@ -1,10 +1,12 @@
-package university.user;
+package university.users; // ИСПРАВЛЕНО: пакет теперь совпадает со всем проектом
 
+import java.io.Serializable; // ИСПРАВЛЕНО: импорт для сохранения данных
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.Objects;
 
-public abstract class User {
+public abstract class User implements Serializable {
+    private static final long serialVersionUID = 2026L;
     private static final Logger LOGGER = Logger.getLogger(User.class.getName());
 
     private String id;
@@ -13,9 +15,7 @@ public abstract class User {
     private String email;
     private String login;
     private String password;
-
     private String language;
-
     private boolean isLoggedIn;
 
     public User(String id, String firstName, String lastName, String email, String login, String password) {
@@ -29,6 +29,14 @@ public abstract class User {
         this.isLoggedIn = false;
 
         LOGGER.log(Level.INFO, "User created: {0} {1} (ID: {2})", new Object[]{firstName, lastName, id});
+    }
+
+
+    public boolean verifyCredentials(String inputLogin, String inputPassword) {
+        if (inputLogin == null || inputPassword == null) {
+            return false;
+        }
+        return this.login.equals(inputLogin.trim()) && this.password.equals(inputPassword);
     }
 
     public boolean login(String username, String password) {
@@ -59,25 +67,19 @@ public abstract class User {
         return firstName + " " + lastName;
     }
 
+    // Геттеры и сеттеры
     public String getId() { return id; }
-
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
-
     public String getLastName() { return lastName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
-
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
-
     public String getLogin() { return login; }
     public void setLogin(String login) { this.login = login; }
-
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
-
     public String getLanguage() { return language; }
-
     public boolean isLoggedIn() { return isLoggedIn; }
 
     @Override

@@ -1,9 +1,9 @@
-package university.user;
+package university.users;
 
 import university.enums.*;
 import university.academic.*;
 import university.research.*;
-import university.exceptions.LowHIndexException;
+
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;

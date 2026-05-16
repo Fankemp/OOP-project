@@ -1,4 +1,4 @@
-package university.user;
+package university.users;
 
 public class GraduateStudent {
 }

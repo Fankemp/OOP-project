@@ -1,6 +1,6 @@
 package university.communications;
 
-import university.user.User;
+import university.users.User;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

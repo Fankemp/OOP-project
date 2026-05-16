@@ -1,82 +1,87 @@
 package university.academic;
 
-import university.user.Student;
-import university.user.Teacher;
 import university.enums.CourseType;
 import university.enums.LessonType;
-import university.exceptions.MaxCreditsException;
+import university.users.Student;
+import university.users.Teacher;
 
+import java.io.Serializable;
+import java.io.Serial;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-public class Course {
-    private static final Logger COURSE_LOGGER = Logger.getLogger(Course.class.getName());
+public class Course implements Serializable, Comparable<Course> {
+    @Serial
+    private static final long serialVersionUID = 2026L;
 
-    private String code;
-    private String name;
-    private int credits;
-    private CourseType type;
+    private final String code;
+    private final String name;
+    private final int credits;
+    private final CourseType type;
     private Teacher lectureTeacher;
     private Teacher practiceTeacher;
-    private List<Student> students;
+    private final List<Student> students = new ArrayList<>();
+    private final List<Lesson> lessons = new ArrayList<>();
 
     public Course(String code, String name, int credits, CourseType type) {
-        this.code = code;
-        this.name = name;
+        this.code = Objects.requireNonNull(code, "Код курса не может быть null").toUpperCase();
+        this.name = Objects.requireNonNull(name, "Название курса не может быть null");
+        this.type = Objects.requireNonNull(type, "Тип курса не может быть null");
+        if (credits <= 0) throw new IllegalArgumentException("Количество кредитов должно быть положительным");
         this.credits = credits;
-        this.type = type;
-        this.students = new ArrayList<>();
     }
+
 
     public void addTeacher(Teacher teacher, LessonType lessonType) {
+        Objects.requireNonNull(teacher, "Преподаватель не может быть null");
         if (lessonType == LessonType.LECTURE) {
             this.lectureTeacher = teacher;
-            COURSE_LOGGER.log(Level.INFO, "Lecture teacher {0} added to course {1}",
-                    new Object[]{teacher.getLastName(), name});
         } else if (lessonType == LessonType.PRACTICE) {
             this.practiceTeacher = teacher;
-            COURSE_LOGGER.log(Level.INFO, "Practice teacher {0} added to course {1}",
-                    new Object[]{teacher.getLastName(), name});
         }
     }
 
+
     public void enrollStudent(Student student) {
+        Objects.requireNonNull(student, "Студент не может быть null");
         if (!students.contains(student)) {
-            students.add(student);
-            COURSE_LOGGER.log(Level.INFO, "Student {0} enrolled in {1}",
-                    new Object[]{student.getId(), name});
+            this.students.add(student);
         }
     }
+
+    public void addLesson(Lesson lesson) {
+        this.lessons.add(Objects.requireNonNull(lesson, "Занятие не может быть null"));
+    }
+
 
     public String getCode() { return code; }
     public String getName() { return name; }
     public int getCredits() { return credits; }
     public CourseType getType() { return type; }
+    public Teacher getLectureTeacher() { return lectureTeacher; }
+    public Teacher getPracticeTeacher() { return practiceTeacher; }
     public List<Student> getStudents() { return Collections.unmodifiableList(students); }
+    public List<Lesson> getLessons() { return Collections.unmodifiableList(lessons); }
+
+
+    @Override
+    public int compareTo(Course o) {
+        return this.code.compareTo(o.code);
+    }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Course course = (Course) o;
-        return Objects.equals(code, course.code);
+        if (!(o instanceof Course course)) return false;
+        return code.equalsIgnoreCase(course.code);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(code);
+        return Objects.hash(code.toLowerCase());
     }
 
     @Override
     public String toString() {
-        return "Course{" +
-                "code='" + code + '\'' +
-                ", name='" + name + '\'' +
-                ", credits=" + credits +
-                ", type=" + type +
-                ", lecture=" + (lectureTeacher != null ? lectureTeacher.getLastName() : "TBA") +
-                ", practice=" + (practiceTeacher != null ? practiceTeacher.getLastName() : "TBA") +
-                '}';
+        return String.format("[%s] %s (%d кредитов, %s)", code, name, credits, type);
     }
 }

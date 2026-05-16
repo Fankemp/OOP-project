@@ -13,7 +13,9 @@ public class Student extends User {
     private String major;
     private int yearOfStudy;
     private List<Course> courses;
+
     private int totalCredits;
+
     private Map<Course, Integer> failCount;
     private Map<Course, Mark> marks;
 
@@ -21,7 +23,7 @@ public class Student extends User {
         super(id, firstName, lastName, email, login, password);
         this.major = major;
         this.yearOfStudy = yearOfStudy;
-        this.gpa = 0;
+        this.gpa = 0.0;
         this.totalCredits = 0;
         this.courses = new ArrayList<>();
         this.failCount = new HashMap<>();
@@ -32,30 +34,70 @@ public class Student extends User {
         if (this.totalCredits + course.getCredits() > 21) {
             STUDENT_LOGGER.log(Level.WARNING, "MaxCreditsException for student {0}: Attempted {1} credits",
                     new Object[]{getId(), (totalCredits + course.getCredits())});
-            throw new MaxCreditsException("Exceeded credits limit (max 21). Current credits: " + totalCredits);
+            throw new MaxCreditsException("Limit exceeded! Current: " + totalCredits + ", New: " + course.getCredits());
         }
 
         if (failCount.containsKey(course) && failCount.get(course) >= 3) {
-            STUDENT_LOGGER.log(Level.SEVERE, "CourseFailLimitException: Student {0} failed {1} too many times",
-                    new Object[]{getId(), course.getName()});
-            throw new CourseFailLimitException("You reached retakes limit for course: " + course.getName());
+            throw new CourseFailLimitException("Too many fails for course: " + course.getName());
         }
 
         if (!courses.contains(course)) {
             courses.add(course);
             totalCredits += course.getCredits();
-            STUDENT_LOGGER.log(Level.INFO, "Course {0} registered successfully for student {1}", new Object[]{course.getName(), getId()});
+            STUDENT_LOGGER.log(Level.INFO, "Course {0} registered for student {1}", new Object[]{course.getName(), getId()});
         }
     }
 
+    public void receiveMark(Course course, Mark mark) {
+        if (!courses.contains(course)) {
+            STUDENT_LOGGER.log(Level.WARNING, "Student {0} is not registered for course {1}", new Object[]{getId(), course.getName()});
+            return;
+        }
+
+        marks.put(course, mark);
+        STUDENT_LOGGER.log(Level.INFO, "Student {0} received mark {1} for course {2}",
+                new Object[]{getId(), mark.getNumericalValue(), course.getName()});
+
+        if (mark.getNumericalValue() < 50 || "F".equals(mark.getLetterValue())) {
+            int currentFails = failCount.getOrDefault(course, 0);
+            failCount.put(course, currentFails + 1);
+            STUDENT_LOGGER.log(Level.INFO, "Course {0} fail count increased to {1} for student {2}",
+                    new Object[]{course.getName(), failCount.get(course), getId()});
+        }
+
+        recalculateGpa();
+    }
+
+    private void recalculateGpa() {
+        if (marks.isEmpty()) {
+            this.gpa = 0.0;
+            return;
+        }
+
+        double totalPoints = 0.0;
+        int gradedCredits = 0;
+
+        for (Map.Entry<Course, Mark> entry : marks.entrySet()) {
+            Course course = entry.getKey();
+            Mark mark = entry.getValue();
+
+            totalPoints += mark.getGpaValue() * course.getCredits();
+            gradedCredits += course.getCredits();
+        }
+
+        this.gpa = gradedCredits > 0 ? (totalPoints / gradedCredits) : 0.0;
+    }
+
     public void viewMarks() {
-        System.out.println("Marks for student " + getFirstName() + ":");
+        if (marks.isEmpty()) {
+            System.out.println("No marks available yet.");
+            return;
+        }
         marks.forEach((course, mark) ->
-                System.out.println(course.getName() + ": " + mark.getNumericalValue()));
+                System.out.println(course.getName() + ": " + mark.getNumericalValue() + " (" + mark.getLetterValue() + ")"));
     }
 
     public Transcript getTranscript() {
-        // Это на потом
         return new Transcript(this.marks, this.gpa);
     }
 
@@ -80,13 +122,19 @@ public class Student extends User {
 
     public List<Course> getCourses() { return Collections.unmodifiableList(courses); }
 
+    public int getTotalCredits() { return totalCredits; }
+
+    public Map<Course, Mark> getMarks() { return marks; }
+
+    public Map<Course, Integer> getFailCount() { return failCount; }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Student)) return false;
         if (!super.equals(o)) return false;
         Student student = (Student) o;
-        return Objects.equals(id, student.id);
+        return Objects.equals(getId(), student.getId());
     }
 
     @Override
@@ -96,10 +144,7 @@ public class Student extends User {
 
     @Override
     public String toString() {
-        return "Student{" +
-                "major='" + major + '\'' +
-                ", gpa=" + gpa +
-                ", year=" + yearOfStudy +
-                "} " + super.toString();
+        return String.format("Student{id='%s', name='%s', major='%s', year=%d, gpa=%.2f, credits=%d}",
+                getId(), getFullName(), major, yearOfStudy, gpa, totalCredits);
     }
 }

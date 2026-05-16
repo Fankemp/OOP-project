@@ -1,12 +1,13 @@
-    package university.exceptions;
+package university.exceptions;
 
-import java.io.Serial;
+public class CourseFailLimitException extends Exception {
 
-public class CourseFailLimitException extends RuntimeException {
-    @Serial
-    private static final long serialVersionUID = 2026L;
+    private static final int MAX_FAILS = 3;
 
-    public CourseFailLimitException(String message) {
-        super(message);
+    public CourseFailLimitException(String studentName, String courseName) {
+        super(String.format(
+                "Student '%s' has reached the maximum of %d failures for course '%s' and cannot retake it.",
+                studentName, MAX_FAILS, courseName
+        ));
     }
 }

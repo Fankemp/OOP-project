@@ -1,55 +1,84 @@
-package university.users;
+package university.user;
 
-import java.io.Serializable;
-import java.io.Serial;
-import java.util.Objects;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.Level;
+import java.util.Objects;
 
-public abstract class User implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 2026L;
-
+public abstract class User {
     private static final Logger LOGGER = Logger.getLogger(User.class.getName());
 
-    // ИНКАПСУЛЯЦИЯ: Все поля строго private
-    private final String id;
-    private final String firstName;
-    private final String lastName;
-    private final String email;
+    private String id;
+    private String firstName;
+    private String lastName;
+    private String email;
     private String login;
     private String password;
 
+    private String language;
+
+    private boolean isLoggedIn;
+
     public User(String id, String firstName, String lastName, String email, String login, String password) {
-        this.id = Objects.requireNonNull(id, "ID не может быть null");
-        this.firstName = Objects.requireNonNull(firstName, "Имя не может быть null");
-        this.lastName = Objects.requireNonNull(lastName, "Фамилия не может быть null");
-        this.email = Objects.requireNonNull(email, "Email не может быть null");
-        this.login = Objects.requireNonNull(login, "Логин не может быть null");
-        this.password = Objects.requireNonNull(password, "Пароль не может быть null");
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.login = login;
+        this.password = password;
+        this.language = "EN";
+        this.isLoggedIn = false;
 
-        LOGGER.log(Level.INFO, "User создан: {0} {1} (ID: {2})", new Object[]{firstName, lastName, id});
+        LOGGER.log(Level.INFO, "User created: {0} {1} (ID: {2})", new Object[]{firstName, lastName, id});
     }
 
-    // Публичный интерфейс доступа (API класса)
-    public String getId() { return id; }
-    public String getLogin() { return login; }
-    public String getFirstName() { return firstName; }
-    public String getLastName() { return lastName; }
-    public String getEmail() { return email; }
-    public String getPassword() { return password; }
-
-    public void setLogin(String login) { this.login = Objects.requireNonNull(login); }
-    public void setPassword(String password) { this.password = Objects.requireNonNull(password); }
-
-    public boolean checkPassword(String password) { return this.password.equals(password); }
-
-    public boolean verifyCredentials(String inputLogin, String inputPassword) {
-        if (inputLogin == null || inputPassword == null) {
-            return false;
+    public boolean login(String username, String password) {
+        if (this.login.equals(username) && this.password.equals(password)) {
+            this.isLoggedIn = true;
+            LOGGER.log(Level.INFO, "User {0} successfully logged in.", id);
+            return true;
         }
-        return this.login.equals(inputLogin.trim()) && this.password.equals(inputPassword);
+        LOGGER.log(Level.WARNING, "Failed login attempt for username: {0}", username);
+        return false;
     }
+
+    public void logout() {
+        if (this.isLoggedIn) {
+            this.isLoggedIn = false;
+            LOGGER.log(Level.INFO, "User {0} logged out.", id);
+        }
+    }
+
+    public void switchLanguage(String newLanguage) {
+        if (newLanguage != null && !newLanguage.trim().isEmpty()) {
+            this.language = newLanguage.toUpperCase();
+            LOGGER.log(Level.INFO, "User {0} switched language to {1}", new Object[]{id, this.language});
+        }
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
+    public String getId() { return id; }
+
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getLogin() { return login; }
+    public void setLogin(String login) { this.login = login; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+
+    public String getLanguage() { return language; }
+
+    public boolean isLoggedIn() { return isLoggedIn; }
 
     @Override
     public boolean equals(Object o) {
@@ -60,10 +89,13 @@ public abstract class User implements Serializable {
     }
 
     @Override
-    public int hashCode() { return Objects.hash(id); }
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
     @Override
     public String toString() {
-        return String.format("%s %s (ID: %s)", firstName, lastName, id);
+        return String.format("User{id='%s', name='%s', lang='%s', authenticated=%b}",
+                id, getFullName(), language, isLoggedIn);
     }
 }

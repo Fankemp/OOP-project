@@ -1,21 +1,24 @@
 package university.communications;
 
 import java.io.Serializable;
+import java.io.Serial;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class News implements Serializable {
-    private static final long serialVersionUID = 1L;
 
-    private String title;
-    private String content;
-    private String topic;
+public class News implements Serializable, Comparable<News> {
+    @Serial
+    private static final long serialVersionUID = 2026L; // Синхронизируем версию с остальным проектом
+
+    private final String title;
+    private final String content;
+    private final String topic;
     private boolean pinned;
-    private LocalDateTime createdAt;
-    private List<Comment> comments;
+    private final LocalDateTime createdAt;
+    private final List<Comment> comments;
 
     public News(String title, String content, String topic) {
         this.title = title;
@@ -24,6 +27,7 @@ public class News implements Serializable {
         this.createdAt = LocalDateTime.now();
         this.comments = new ArrayList<>();
 
+        // Автоматически закрепляем научные публикации по ТЗ
         if (topic != null && topic.equalsIgnoreCase("RESEARCH")) {
             this.pinned = true;
         } else {
@@ -31,25 +35,20 @@ public class News implements Serializable {
         }
     }
 
-    public String getTitle() {
-        return title;
+
+    @Override
+    public int compareTo(News other) {
+        if (this.pinned && !other.pinned) return -1; // Эта новость выше
+        if (!this.pinned && other.pinned) return 1;  // Эта новость ниже
+
+        return other.createdAt.compareTo(this.createdAt);
     }
 
-    public String getContent() {
-        return content;
-    }
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public boolean isPinned() {
-        return pinned;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
+    public String getTitle() { return title; }
+    public String getContent() { return content; }
+    public String getTopic() { return topic; }
+    public boolean isPinned() { return pinned; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
 
     public List<Comment> getComments() {
         return Collections.unmodifiableList(comments);
@@ -69,39 +68,29 @@ public class News implements Serializable {
         if (topic != null && topic.equalsIgnoreCase("RESEARCH")) {
             return;
         }
-
         this.pinned = false;
     }
 
     @Override
-    public String toString() {
-        return "News{" +
-                "title='" + title + '\'' +
-                ", content='" + content + '\'' +
-                ", topic='" + topic + '\'' +
-                ", pinned=" + pinned +
-                ", createdAt=" + createdAt +
-                ", comments=" + comments +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof News)) return false;
-
-        News news = (News) obj;
-
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof News news)) return false;
         return pinned == news.pinned &&
                 Objects.equals(title, news.title) &&
-                Objects.equals(content, news.content) &&
                 Objects.equals(topic, news.topic) &&
-                Objects.equals(createdAt, news.createdAt) &&
-                Objects.equals(comments, news.comments);
+                Objects.equals(createdAt, news.createdAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(title, content, topic, pinned, createdAt, comments);
+        // ИСПРАВЛЕНО: Убрали изменяемый список comments, чтобы объект не терялся в коллекциях
+        return Objects.hash(title, topic, pinned, createdAt);
+    }
+
+    @Override
+    public String toString() {
+        String marker = pinned ? "📌 [PINNED]" : "";
+        return String.format("%s [%s] %s (%s)%n  %s%n  Комментариев: %d",
+                marker, topic.toUpperCase(), title, createdAt, content, comments.size());
     }
 }

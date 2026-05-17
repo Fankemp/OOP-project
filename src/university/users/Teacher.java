@@ -3,11 +3,18 @@ package university.users;
 import university.enums.*;
 import university.academic.*;
 import university.research.*;
+import java.io.Serial;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class  Teacher extends Employee implements Researcher {
+/**
+ * Класс Преподавателя университета.
+ * ИСПРАВЛЕНО: Научная деятельность полностью делегирована в ResearchProfile через default-методы.
+ */
+public class Teacher extends Employee implements Researcher {
+    @Serial
+    private static final long serialVersionUID = 2026L;
     private static final Logger TEACHER_LOGGER = Logger.getLogger(Teacher.class.getName());
 
     private TeacherPosition position;
@@ -17,19 +24,24 @@ public class  Teacher extends Employee implements Researcher {
     private int numberOfRatings;
     private double totalRatingSum;
 
-    private List<ResearchPaper> papers;
-    private List<ResearchProject> researchProjects;
+    // ИСПРАВЛЕНО: Вместо кучи списков статей и проектов внедряем один чистый профиль-делегат
+    private final ResearchProfile researchProfile;
 
     public Teacher(String id, String firstName, String lastName, String email, String login, String password,
                    double salary, String department, TeacherPosition position) {
         super(id, firstName, lastName, email, login, password, salary, department);
         this.position = position;
         this.courses = new ArrayList<>();
-        this.papers = new ArrayList<>();
-        this.researchProjects = new ArrayList<>();
         this.rating = 0.0;
         this.numberOfRatings = 0;
         this.totalRatingSum = 0.0;
+
+        this.researchProfile = new ResearchProfile(id);
+    }
+
+    @Override
+    public ResearchProfile getResearchProfile() {
+        return this.researchProfile;
     }
 
     public void putMark(Student student, Course course, Mark mark) {
@@ -82,60 +94,6 @@ public class  Teacher extends Employee implements Researcher {
                 new Object[]{getId(), newRating, this.rating});
     }
 
-    @Override
-    public int calculateHIndex() {
-        if (papers == null || papers.isEmpty()) {
-            return 0;
-        }
-
-        int[] citations = new int[papers.size()];
-        for (int i = 0; i < papers.size(); i++) {
-            citations[i] = papers.get(i).getCitations();
-        }
-
-        Arrays.sort(citations);
-
-        int hIndex = 0;
-        int n = citations.length;
-        for (int i = 0; i < n; i++) {
-            int currentH = n - i;
-            if (citations[i] >= currentH) {
-                hIndex = currentH;
-                break;
-            }
-        }
-        return hIndex;
-    }
-
-    @Override
-    public void printPapers(Comparator<ResearchPaper> c) {
-        List<ResearchPaper> sortedPapers = new ArrayList<>(papers);
-        sortedPapers.sort(c);
-        sortedPapers.forEach(System.out::println);
-    }
-
-    @Override
-    public List<ResearchPaper> getResearchPapers() {
-        return new ArrayList<>(papers);
-    }
-
-    @Override
-    public List<ResearchProject> getResearchProjects() {
-        return Collections.unmodifiableList(researchProjects);
-    }
-
-    public void addResearchPaper(ResearchPaper paper) {
-        if (paper != null && !papers.contains(paper)) {
-            papers.add(paper);
-        }
-    }
-
-    public void addResearchProject(ResearchProject project) {
-        if (project != null && !researchProjects.contains(project)) {
-            researchProjects.add(project);
-        }
-    }
-
     public TeacherPosition getPosition() { return position; }
     public void setPosition(TeacherPosition position) { this.position = position; }
 
@@ -158,7 +116,8 @@ public class  Teacher extends Employee implements Researcher {
 
     @Override
     public String toString() {
+        // ИСПРАВЛЕНО: Методы getPapers() и calculateHIndex() вызываются напрямую из интерфейса Researcher
         return String.format("Teacher{id='%s', name='%s', position=%s, rating=%.2f, totalPapers=%d, hIndex=%d}",
-                getId(), getFullName(), position, rating, papers.size(), calculateHIndex());
+                getId(), getFullName(), position, rating, getPapers().size(), calculateHIndex());
     }
 }

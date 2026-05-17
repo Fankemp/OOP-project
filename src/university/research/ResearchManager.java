@@ -1,4 +1,4 @@
-package research;
+package university.research;
 
 import java.util.ArrayList;
 import java.util.Comparator;

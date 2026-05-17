@@ -20,8 +20,7 @@ public class UserFactory {
     public static Manager createManager(String id, String firstName, String lastName,
                                         String email, String login, String password,
                                         double salary, ManagerType type) {
-        // Фабрика сама знает, какой департамент по умолчанию закрепить за Менеджером
-        return new Manager(id, firstName, lastName, email, login, password, salary, "Office of Registrar", type);
+        return new Manager(id, firstName, lastName, email, login, password, salary, type);
     }
 
     public static Admin createAdmin(String id, String firstName, String lastName,

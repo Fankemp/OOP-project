@@ -18,7 +18,7 @@ public class Manager extends Employee {
                    String email, String login, String passwordHash,
                    double salary,
                    ManagerType managerType) {
-        super(id, firstName, lastName, email, login, passwordHash, salary);
+        super(id, firstName, lastName, email, login, passwordHash, salary, "Office of Registrar");
         this.managerType = managerType;
     }
 
@@ -37,12 +37,7 @@ public class Manager extends Employee {
         course.enrollStudent(student);
     }
 
-    /**
-     Adds a course to the registration catalogue for a specific major and year.
-     @param course      the course to open for registration
-     @param targetMajor the major this course is intended for
-     @param yearOfStudy the year of study (1–4 for bachelor, 1–2 for master, etc.)
-     */
+
     public void addCourseForRegistration(Course course, String targetMajor, int yearOfStudy) {
         if (course == null) throw new IllegalArgumentException("Course cannot be null.");
         course.setTargetMajor(targetMajor);
@@ -52,10 +47,7 @@ public class Manager extends Employee {
                 getFullName(), course.getName(), targetMajor, yearOfStudy);
     }
 
-    /**
-     * Creates and prints a simple academic performance report for a list of students.
-     * Returns the report as a formatted string so it can also be saved to a file.
-     */
+
     public String createReport(List<Student> students) {
         if (students == null || students.isEmpty()) return "No students to report on.";
 
@@ -80,10 +72,7 @@ public class Manager extends Employee {
         return report;
     }
 
-    /**
-     * Publishes, updates or removes a news item.
-     * Actual storage is handled by the news list passed in.
-     */
+
     public void manageNews(News news, List<News> newsFeed, NewsAction action) {
         switch (action) {
             case ADD    -> { newsFeed.add(news); System.out.printf("[Manager] News added: '%s'%n", news.getTitle()); }

@@ -1,6 +1,6 @@
-package research.journal;
+package university.research.journal;
 
-import research.ResearchPaper;
+import university.research.ResearchPaper;
 
 import java.util.ArrayList;
 import java.util.List;

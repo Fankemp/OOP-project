@@ -9,6 +9,10 @@ import java.io.Serializable;
 import java.io.Serial;
 import java.util.*;
 
+/**
+ * Класс учебного курса университета.
+ * Синхронизирован с логикой управления менеджера (Manager).
+ */
 public class Course implements Serializable, Comparable<Course> {
     @Serial
     private static final long serialVersionUID = 2026L;
@@ -22,17 +26,26 @@ public class Course implements Serializable, Comparable<Course> {
     private final List<Student> students = new ArrayList<>();
     private final List<Lesson> lessons = new ArrayList<>();
 
+    // ИСПРАВЛЕНО: Добавлены поля для управления регистрацией, которые требует Manager
+    private String targetMajor;
+    private int targetYear;
+    private boolean openForRegistration = false;
+
     public Course(String code, String name, int credits, CourseType type) {
-        this.code = Objects.requireNonNull(code, "Код курса не может быть null").toUpperCase();
-        this.name = Objects.requireNonNull(name, "Название курса не может быть null");
-        this.type = Objects.requireNonNull(type, "Тип курса не может быть null");
-        if (credits <= 0) throw new IllegalArgumentException("Количество кредитов должно быть положительным");
+        this.code = Objects.requireNonNull(code, "Course code cannot be null").toUpperCase();
+        this.name = Objects.requireNonNull(name, "Course name cannot be null");
+        this.type = Objects.requireNonNull(type, "Course type cannot be null");
+        if (credits <= 0) throw new IllegalArgumentException("Credits count must be a positive integer");
         this.credits = credits;
     }
 
+    // ИСПРАВЛЕНО: Перегруженный метод для совместимости с вызовом manager.assignTeacher(teacher, course)
+    public void addTeacher(Teacher teacher) {
+        addTeacher(teacher, LessonType.LECTURE);
+    }
 
     public void addTeacher(Teacher teacher, LessonType lessonType) {
-        Objects.requireNonNull(teacher, "Преподаватель не может быть null");
+        Objects.requireNonNull(teacher, "Teacher cannot be null");
         if (lessonType == LessonType.LECTURE) {
             this.lectureTeacher = teacher;
         } else if (lessonType == LessonType.PRACTICE) {
@@ -40,19 +53,18 @@ public class Course implements Serializable, Comparable<Course> {
         }
     }
 
-
     public void enrollStudent(Student student) {
-        Objects.requireNonNull(student, "Студент не может быть null");
+        Objects.requireNonNull(student, "Student cannot be null");
         if (!students.contains(student)) {
             this.students.add(student);
         }
     }
 
     public void addLesson(Lesson lesson) {
-        this.lessons.add(Objects.requireNonNull(lesson, "Занятие не может быть null"));
+        this.lessons.add(Objects.requireNonNull(lesson, "Lesson cannot be null"));
     }
 
-
+    // Геттеры и сеттеры
     public String getCode() { return code; }
     public String getName() { return name; }
     public int getCredits() { return credits; }
@@ -62,6 +74,15 @@ public class Course implements Serializable, Comparable<Course> {
     public List<Student> getStudents() { return Collections.unmodifiableList(students); }
     public List<Lesson> getLessons() { return Collections.unmodifiableList(lessons); }
 
+    // ИСПРАВЛЕНО: Геттеры и сеттеры для интеграции с Manager
+    public String getTargetMajor() { return targetMajor; }
+    public void setTargetMajor(String targetMajor) { this.targetMajor = targetMajor; }
+
+    public int getTargetYear() { return targetYear; }
+    public void setTargetYear(int yearOfStudy) { this.targetYear = yearOfStudy; }
+
+    public boolean isOpenForRegistration() { return openForRegistration; }
+    public void setOpenForRegistration(boolean openForRegistration) { this.openForRegistration = openForRegistration; }
 
     @Override
     public int compareTo(Course o) {
@@ -82,6 +103,6 @@ public class Course implements Serializable, Comparable<Course> {
 
     @Override
     public String toString() {
-        return String.format("[%s] %s (%d кредитов, %s)", code, name, credits, type);
+        return String.format("[%s] %s (%d credits, %s)", code, name, credits, type);
     }
 }

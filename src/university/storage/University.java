@@ -1,6 +1,7 @@
 package university.storage;
 
 import university.academic.Mark;
+import university.exceptions.CourseFailLimitException;
 import university.exceptions.MaxCreditsException;
 import university.users.User;
 import university.academic.Course;
@@ -10,14 +11,11 @@ import university.communications.Request;
 import java.io.*;
 import java.util.*;
 
-/**
- * Глобальный контейнер данных Университета (Singleton + Memento).
- * Хранит, сериализует и предоставляет доступ к корневым коллекциям системы.
- */
+
 public class University implements Serializable {
     @Serial
     private static final long serialVersionUID = 2026L;
-
+    private List<university.communications.Message> allMessages = new java.util.ArrayList<>();
     private static final String DATA_FILE = "university_data.ser";
     private static final University INSTANCE = new University();
 
@@ -43,11 +41,10 @@ public class University implements Serializable {
                 .findFirst();
     }
 
-    public synchronized void enrollStudentInCourse(university.users.Student student, Course course) throws MaxCreditsException {
+    public synchronized void enrollStudentInCourse(university.users.Student student, Course course) throws MaxCreditsException, CourseFailLimitException {
         Objects.requireNonNull(student, "Студент не может быть null");
         Objects.requireNonNull(course, "Курс не может быть null");
 
-        // 1. Проверяем лимиты внутри самого студента (выбросит исключение, если лимит превышен)
         student.registerCourse(course);
 
         // 2. Если исключение не вылетело, добавляем студента в ведомость курса
@@ -102,6 +99,23 @@ public class University implements Serializable {
 
     public synchronized void addRequest(Request request) {
         this.requests.add(Objects.requireNonNull(request, "Запрос не может быть null"));
+    }
+
+    public void sendMessage(university.users.User sender, university.users.User receiver, String text) {
+        if (sender == null || receiver == null || text == null || text.trim().isEmpty()) {
+            return;
+        }
+        university.communications.Message msg = new university.communications.Message(sender, receiver, text);
+        this.allMessages.add(msg);
+    }
+
+    public java.util.List<university.communications.Message> getMessagesForUser(university.users.User user) {
+        if (user == null) return java.util.Collections.emptyList();
+
+        // Фильтруем все сообщения, где текущий пользователь является получателем
+        return this.allMessages.stream()
+                .filter(m -> m.getReceiver().equals(user))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     // Защита от прямого изменения списков из других пакетов

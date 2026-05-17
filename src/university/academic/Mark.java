@@ -44,7 +44,6 @@ public class Mark implements Serializable {
         return att1 + att2 + finalExam;
     }
 
-    // === ВОТ ЭТОТ МЕТОД РЕШАЕТ ТВОЮ ПРОБЛЕМУ ===
     public boolean isFailed() {
         return getTotal() < 50.0;
     }

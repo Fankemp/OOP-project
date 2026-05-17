@@ -13,7 +13,7 @@ public class Admin extends Employee {
     public Admin(String id, String firstName, String lastName,
                  String email, String login, String password,
                  double salary) {
-        super(id, firstName, lastName, email, login, password, salary);
+        super(id, firstName, lastName, email, login, password, salary, "Administration");
         this.logFilePath = "logs/university.log";
     }
 

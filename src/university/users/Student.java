@@ -1,23 +1,31 @@
 package university.users;
 
+import java.io.Serial;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import university.exceptions.*;
 import university.academic.*;
 
+/**
+ * Класс, представляющий студента университета.
+ * Отрефакторен согласно принципам DRY и Low Coupling.
+ */
 public class Student extends User {
+    @Serial
+    private static final long serialVersionUID = 2026L;
     private static final Logger STUDENT_LOGGER = Logger.getLogger(Student.class.getName());
+
+    private static final int MAX_CREDITS_LIMIT = 21;
 
     private double gpa;
     private String major;
     private int yearOfStudy;
-    private List<Course> courses;
-
     private int totalCredits;
 
-    private Map<Course, Integer> failCount;
-    private Map<Course, Mark> marks;
+    private final List<Course> courses;
+    private final Map<Course, Integer> failCount;
+    private final Map<Course, Mark> marks;
 
     public Student(String id, String firstName, String lastName, String email, String login, String password, String major, int yearOfStudy) {
         super(id, firstName, lastName, email, login, password);
@@ -31,14 +39,14 @@ public class Student extends User {
     }
 
     public void registerCourse(Course course) throws MaxCreditsException, CourseFailLimitException {
-        if (this.totalCredits + course.getCredits() > 21) {
+        if (this.totalCredits + course.getCredits() > MAX_CREDITS_LIMIT) {
             STUDENT_LOGGER.log(Level.WARNING, "MaxCreditsException for student {0}: Attempted {1} credits",
                     new Object[]{getId(), (totalCredits + course.getCredits())});
-            throw new MaxCreditsException("Limit exceeded! Current: " + totalCredits + ", New: " + course.getCredits());
+            throw new MaxCreditsException(this.totalCredits, course.getCredits());
         }
 
-        if (failCount.containsKey(course) && failCount.get(course) >= 3) {
-            throw new CourseFailLimitException("Too many fails for course: " + course.getName());
+        if (hasExceededFailLimit(course)) {
+            throw new CourseFailLimitException(this.getFullName(), course.getName());
         }
 
         if (!courses.contains(course)) {
@@ -48,6 +56,7 @@ public class Student extends User {
         }
     }
 
+
     public void receiveMark(Course course, Mark mark) {
         if (!courses.contains(course)) {
             STUDENT_LOGGER.log(Level.WARNING, "Student {0} is not registered for course {1}", new Object[]{getId(), course.getName()});
@@ -56,16 +65,24 @@ public class Student extends User {
 
         marks.put(course, mark);
         STUDENT_LOGGER.log(Level.INFO, "Student {0} received mark {1} for course {2}",
-                new Object[]{getId(), mark.getNumericalValue(), course.getName()});
+                new Object[]{getId(), mark.getTotal(), course.getName()});
 
-        if (mark.getNumericalValue() < 50 || "F".equals(mark.getLetterValue())) {
-            int currentFails = failCount.getOrDefault(course, 0);
-            failCount.put(course, currentFails + 1);
-            STUDENT_LOGGER.log(Level.INFO, "Course {0} fail count increased to {1} for student {2}",
-                    new Object[]{course.getName(), failCount.get(course), getId()});
+        if (mark.isFailed()) {
+            incrementFailCount(course);
         }
 
         recalculateGpa();
+    }
+
+    private boolean hasExceededFailLimit(Course course) {
+        return failCount.containsKey(course) && failCount.get(course) >= 3;
+    }
+
+    private void incrementFailCount(Course course) {
+        int currentFails = failCount.getOrDefault(course, 0);
+        failCount.put(course, currentFails + 1);
+        STUDENT_LOGGER.log(Level.INFO, "Course {0} fail count increased to {1} for student {2}",
+                new Object[]{course.getName(), failCount.get(course), getId()});
     }
 
     private void recalculateGpa() {
@@ -81,24 +98,28 @@ public class Student extends User {
             Course course = entry.getKey();
             Mark mark = entry.getValue();
 
-            totalPoints += mark.getGpaValue() * course.getCredits();
+            totalPoints += mark.getGpaPoints() * course.getCredits();
             gradedCredits += course.getCredits();
         }
 
         this.gpa = gradedCredits > 0 ? (totalPoints / gradedCredits) : 0.0;
     }
 
+    /**
+     * Выводит текущие оценки студента в консоль.
+     */
     public void viewMarks() {
         if (marks.isEmpty()) {
             System.out.println("No marks available yet.");
             return;
         }
+        // ИСПРАВЛЕНО (DRY): Переиспользовали метод mark.getLetterGrade() и mark.getTotal()
         marks.forEach((course, mark) ->
-                System.out.println(course.getName() + ": " + mark.getNumericalValue() + " (" + mark.getLetterValue() + ")"));
+                System.out.printf("%s: %.1f (%s)%n", course.getName(), mark.getTotal(), mark.getLetterGrade()));
     }
 
     public Transcript getTranscript() {
-        return new Transcript(this.marks, this.gpa);
+        return new Transcript(this.marks);
     }
 
     public void rateTeacher(Teacher teacher, int rating) {
@@ -111,6 +132,7 @@ public class Student extends User {
                 new Object[]{getId(), teacher.getLastName(), rating});
     }
 
+    // --- Геттеры и Сеттеры (С защитой от внешней модификации коллекций) ---
     public double getGpa() { return gpa; }
     public void setGpa(double gpa) { this.gpa = gpa; }
 
@@ -121,13 +143,12 @@ public class Student extends User {
     public void setYearOfStudy(int yearOfStudy) { this.yearOfStudy = yearOfStudy; }
 
     public List<Course> getCourses() { return Collections.unmodifiableList(courses); }
-
     public int getTotalCredits() { return totalCredits; }
 
-    public Map<Course, Mark> getMarks() { return marks; }
+    public Map<Course, Mark> getMarks() { return Collections.unmodifiableMap(marks); }
+    public Map<Course, Integer> getFailCount() { return Collections.unmodifiableMap(failCount); }
 
-    public Map<Course, Integer> getFailCount() { return failCount; }
-
+    // --- Системные контракты равенства объектов ---
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -139,7 +160,7 @@ public class Student extends User {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), major, yearOfStudy);
+        return Objects.hash(super.hashCode());
     }
 
     @Override

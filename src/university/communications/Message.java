@@ -3,70 +3,47 @@ package university.communications;
 import university.users.User;
 
 import java.io.Serializable;
+import java.io.Serial;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+/**
+ * Класс внутреннего сообщения системы.
+ * ИСПРАВЛЕНО: Поля сделаны неизменяемыми, убран баг с динамическим hashCode.
+ */
 public class Message implements Serializable {
-    private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 2026L;
 
-    private User sender;
-    private User receiver;
-    private String text;
-    private LocalDateTime sentAt;
+    private final User sender;
+    private final User receiver;
+    private final String text;
+    private final LocalDateTime sentAt;
     private boolean read;
 
     public Message(User sender, User receiver, String text) {
-        this.sender = sender;
-        this.receiver = receiver;
-        this.text = text;
+        this.sender = Objects.requireNonNull(sender, "Sender cannot be null");
+        this.receiver = Objects.requireNonNull(receiver, "Receiver cannot be null");
+        this.text = Objects.requireNonNull(text, "Message text cannot be null");
         this.sentAt = LocalDateTime.now();
         this.read = false;
     }
 
-    public User getSender() {
-        return sender;
-    }
-
-    public User getReceiver() {
-        return receiver;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public LocalDateTime getSentAt() {
-        return sentAt;
-    }
-
-    public boolean isRead() {
-        return read;
-    }
+    public User getSender() { return sender; }
+    public User getReceiver() { return receiver; }
+    public String getText() { return text; }
+    public LocalDateTime getSentAt() { return sentAt; }
+    public boolean isRead() { return read; }
 
     public void markAsRead() {
         this.read = true;
     }
 
     @Override
-    public String toString() {
-        return "Message{" +
-                "sender=" + sender +
-                ", receiver=" + receiver +
-                ", text='" + text + '\'' +
-                ", sentAt=" + sentAt +
-                ", read=" + read +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof Message)) return false;
-
-        Message message = (Message) obj;
-
-        return read == message.read &&
-                Objects.equals(sender, message.sender) &&
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Message message)) return false;
+        return Objects.equals(sender, message.sender) &&
                 Objects.equals(receiver, message.receiver) &&
                 Objects.equals(text, message.text) &&
                 Objects.equals(sentAt, message.sentAt);
@@ -74,6 +51,14 @@ public class Message implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(sender, receiver, text, sentAt, read);
+        // Хэш стабилен, даже если сообщение прочитают
+        return Objects.hash(sender, receiver, text, sentAt);
+    }
+
+    @Override
+    public String toString() {
+        String status = read ? "Прочитано" : "✉️ НОВОЕ";
+        return String.format("[%s] От: %s | Получено: %s%n   Текст: %s",
+                status, sender.getFullName(), sentAt, text);
     }
 }

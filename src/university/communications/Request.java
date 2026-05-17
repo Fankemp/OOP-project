@@ -1,26 +1,29 @@
 package university.communications;
 
 import university.users.User;
-import university.enums.RequestStatus; // Импортируем Enum, который требует техподдержка
+import university.enums.RequestStatus;
 
 import java.io.Serializable;
+import java.io.Serial;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 
 public class Request implements Serializable {
+    @Serial
     private static final long serialVersionUID = 2026L;
 
-    private String id;
-    private User sender;
-    private String description;
-
+    private final String id;
+    private final User sender;
+    private final String description;
     private RequestStatus status;
-    private LocalDateTime createdAt;
+    private final LocalDateTime createdAt;
+
+    private boolean signed = false;
 
     public Request(User sender, String description) {
-        this.sender = sender;
-        this.description = description;
+        this.sender = Objects.requireNonNull(sender, "Sender cannot be null");
+        this.description = Objects.requireNonNull(description, "Description cannot be null");
         this.status = RequestStatus.NEW;
         this.createdAt = LocalDateTime.now();
 
@@ -28,20 +31,20 @@ public class Request implements Serializable {
     }
 
     public String getId() { return id; }
-
     public RequestStatus getStatus() { return status; }
+    public User getSender() { return sender; }
+    public String getDescription() { return description; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+
+    public boolean isSigned() { return signed; }
+    public void sign() { this.signed = true; }
 
     public void updateStatus(RequestStatus newStatus) {
-        if (newStatus == null) throw new IllegalArgumentException("Статус не может быть null");
+        if (newStatus == null) throw new IllegalArgumentException("Status cannot be null");
         this.status = newStatus;
     }
 
-    public User getSender() { return sender; }
-
-    public String getDescription() { return description; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-
+    // --- Логика стейт-машины переключения статусов ---
     public void view() {
         if (status == RequestStatus.NEW) {
             status = RequestStatus.VIEWED;
@@ -73,25 +76,21 @@ public class Request implements Serializable {
     }
 
     @Override
-    public String toString() {
-        return String.format("Request{id='%s', sender=%s, description='%s', status=%s, date=%s}",
-                id, sender.getFullName(), description, status, createdAt);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof Request)) return false;
-        Request request = (Request) obj;
-        return Objects.equals(id, request.id) &&
-                Objects.equals(sender, request.sender) &&
-                Objects.equals(description, request.description) &&
-                status == request.status &&
-                Objects.equals(createdAt, request.createdAt);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Request request)) return false;
+        return Objects.equals(id, request.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, sender, description, status, createdAt);
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        String signMarker = signed ? "✍️ [SIGNED]" : "[UNSIGNED]";
+        return String.format("Request %s {id='%s', sender=%s, status=%s, desc='%s', date=%s}",
+                signMarker, id, sender.getFullName(), status, description, createdAt);
     }
 }

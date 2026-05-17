@@ -1,4 +1,4 @@
-package research;
+package university.enums;
 
 public enum CitationFormat {
     PLAIN_TEXT,

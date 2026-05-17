@@ -1,0 +1,58 @@
+мая 17, 2026 8:33:48 PM university.users.User <init>
+INFO: User created: Иван Админов (ID: A001)
+мая 17, 2026 8:33:48 PM university.users.User <init>
+INFO: User created: Дана Менеджерова (ID: M001)
+мая 17, 2026 8:33:48 PM university.users.User <init>
+INFO: User created: Пакиза Шамилова (ID: T001)
+мая 17, 2026 8:33:48 PM university.users.Teacher addCourse
+INFO: Course Object-Oriented Programming added to Teacher T001
+мая 17, 2026 8:33:48 PM university.users.User <init>
+INFO: User created: Алихан Инкарбеков (ID: S123)
+мая 17, 2026 8:33:48 PM university.users.User <init>
+INFO: User created: Алексей Фиксов (ID: TS001)
+мая 17, 2026 8:33:48 PM university.users.Student registerCourse
+INFO: Course Object-Oriented Programming registered for student S123
+мая 17, 2026 9:50:09 PM university.users.User <init>
+INFO: User created: Иван Админов (ID: A001)
+мая 17, 2026 9:50:09 PM university.users.User <init>
+INFO: User created: Дана Менеджерова (ID: M001)
+мая 17, 2026 9:50:09 PM university.users.User <init>
+INFO: User created: Пакиза Шамилова (ID: T001)
+мая 17, 2026 9:50:09 PM university.users.Teacher addCourse
+INFO: Course Object-Oriented Programming added to Teacher T001
+мая 17, 2026 9:50:09 PM university.users.User <init>
+INFO: User created: Алихан Инкарбеков (ID: S123)
+мая 17, 2026 9:50:09 PM university.users.User <init>
+INFO: User created: Алексей Фиксов (ID: TS001)
+мая 17, 2026 9:50:09 PM university.users.Student registerCourse
+INFO: Course Object-Oriented Programming registered for student S123
+мая 17, 2026 10:17:11 PM university.users.User <init>
+INFO: User created: Иван Админов (ID: A001)
+мая 17, 2026 10:17:11 PM university.users.User <init>
+INFO: User created: Дана Менеджерова (ID: M001)
+мая 17, 2026 10:17:11 PM university.users.User <init>
+INFO: User created: Пакиза Шамилова (ID: T001)
+мая 17, 2026 10:17:11 PM university.users.Teacher addCourse
+INFO: Course Object-Oriented Programming added to Teacher T001
+мая 17, 2026 10:17:11 PM university.users.User <init>
+INFO: User created: Алихан Инкарбеков (ID: S123)
+мая 17, 2026 10:17:11 PM university.users.User <init>
+INFO: User created: Алексей Фиксов (ID: TS001)
+мая 17, 2026 10:17:11 PM university.users.Student registerCourse
+INFO: Course Object-Oriented Programming registered for student S123
+мая 17, 2026 10:21:13 PM university.users.User <init>
+INFO: User created: Иван Админов (ID: A001)
+мая 17, 2026 10:21:13 PM university.users.User <init>
+INFO: User created: Дана Менеджерова (ID: M001)
+мая 17, 2026 10:21:13 PM university.users.User <init>
+INFO: User created: Пакиза Шамилова (ID: T001)
+мая 17, 2026 10:21:13 PM university.users.Teacher addCourse
+INFO: Course Object-Oriented Programming added to Teacher T001
+мая 17, 2026 10:21:13 PM university.users.User <init>
+INFO: User created: Алихан Инкарбеков (ID: S123)
+мая 17, 2026 10:21:13 PM university.users.User <init>
+INFO: User created: Алексей Фиксов (ID: TS001)
+мая 17, 2026 10:21:13 PM university.users.Student registerCourse
+INFO: Course Object-Oriented Programming registered for student S123
+мая 17, 2026 10:30:56 PM university.users.User <init>
+INFO: User created: Главный Администратор (ID: A001)

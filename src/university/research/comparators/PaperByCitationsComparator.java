@@ -1,6 +1,6 @@
-package research.comparators;
+package university.research.comparators;
 
-import research.ResearchPaper;
+import university.research.ResearchPaper;
 import java.util.Comparator;
 
 public class PaperByCitationsComparator implements Comparator<ResearchPaper> {

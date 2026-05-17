@@ -9,13 +9,23 @@ import university.storage.UserFactory;
 import university.users.*;
 import university.communications.Message;
 import university.communications.Request;
-
+import university.academic.Mark;
+import university.enums.UrgencyLevel;
+import java.util.List;
+import university.research.Researcher;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Scanner;
+import university.communications.News;
+import university.exceptions.LowHIndexException;
+import university.users.StudentOrganization;
+import university.users.StudentOrganization;
 
 /**
  * Слой представления (View). Отвечает за весь интерактивный текстовый интерфейс системы KBTU.
@@ -76,10 +86,79 @@ public class ConsoleInterface {
             runManagerMenu((Manager) currentUser);
         } else if (currentUser instanceof Teacher) {
             runTeacherMenu((Teacher) currentUser);
+        } else if (currentUser instanceof GraduateStudent) {
+            runGradStudentMenu((GraduateStudent) currentUser);
         } else if (currentUser instanceof Student) {
             runStudentMenu((Student) currentUser);
         } else if (currentUser instanceof TechSupportSpecialist) {
             runTechSupportMenu((TechSupportSpecialist) currentUser);
+        }
+    }
+    
+    private static void runGradStudentMenu(GraduateStudent student) {
+        System.out.println("\n--- [Graduate Student Panel] ---");
+        System.out.println("1. Зарегистрироваться на курс");
+        System.out.println("2. Посмотреть оценки");
+        System.out.println("3. Транскрипт");
+        System.out.println("4. Отправить сообщение");
+        System.out.println("5. Посмотреть почтовый ящик");
+        System.out.println("6. Оценить преподавателя");
+        System.out.println("7. Research меню");
+        System.out.println("8. Назначить научного руководителя");
+        System.out.println("9. Logout");
+        System.out.print("Choice: ");
+
+        switch (scanner.nextLine().trim()) {
+            case "1" -> {
+                System.out.println("\n--- Доступные курсы ---");
+                university.getCourses().forEach(System.out::println);
+                System.out.print("Course code: ");
+                String code = scanner.nextLine().trim();
+                Course course = university.getCourses().stream()
+                        .filter(c -> c.getCode().equalsIgnoreCase(code))
+                        .findFirst().orElse(null);
+                if (course == null) { System.out.println("Course not found."); return; }
+                try {
+                    student.registerCourse(course);
+                    System.out.println("Registered successfully.");
+                } catch (MaxCreditsException | CourseFailLimitException e) {
+                    System.out.println("Error: " + e.getMessage());
+                }
+            }
+            case "2" -> student.viewMarks();
+            case "3" -> System.out.println(student.getTranscript().toString());
+            case "4" -> handleSendMessageMenu(student);
+            case "5" -> handleViewMailboxMenu(student);
+            case "6" -> handleRateTeacher(student);
+            case "7" -> handleResearcherMenu(student);
+            case "8" -> handleSetSupervisor(student);
+            case "9" -> { currentUser = null; System.out.println("Logged out."); }
+            default  -> System.out.println("Invalid choice.");
+        }
+    }
+
+    private static void handleSetSupervisor(GraduateStudent student) {
+        System.out.println("\n--- Set Research Supervisor ---");
+        List<Teacher> teachers = university.getUsers().stream()
+                .filter(u -> u instanceof Teacher)
+                .map(u -> (Teacher) u)
+                .toList();
+        if (teachers.isEmpty()) { System.out.println("No teachers in system."); return; }
+        teachers.forEach(t -> System.out.printf("  login: %-15s | %s | h-index: %d%n",
+                t.getLogin(), t.getFullName(), t.calculateHIndex()));
+
+        System.out.print("Teacher login: ");
+        String tLogin = scanner.nextLine().trim();
+        Teacher teacher = teachers.stream()
+                .filter(t -> t.getLogin().equalsIgnoreCase(tLogin))
+                .findFirst().orElse(null);
+        if (teacher == null) { System.out.println("Teacher not found."); return; }
+
+        try {
+            student.setSupervisor(teacher);
+            System.out.println("Supervisor set: " + teacher.getFullName());
+        } catch (LowHIndexException e) {
+            System.out.println("Error: " + e.getMessage());
         }
     }
 
@@ -98,52 +177,184 @@ public class ConsoleInterface {
         String choice = scanner.nextLine().trim();
         switch (choice) {
             case "1" -> handleCreateUserMenu(); // ИСПРАВЛЕНО: Вместо заглушки вызываем интерактивное меню
-            case "2" -> System.out.println("[Админ]: Удаление пользователя по ID...");
-            case "3" -> System.out.println("[Админ]: Обновление учетных записей...");
+            case "2" -> handleRemoveUser();
+            case "3" -> handleUpdateUser();
             case "4" -> printLogsFromFile();
             case "5" -> currentUser = null;
             default -> System.out.println("Неверный выбор.");
         }
     }
+    
+    private static void handleRemoveUser() {
+        System.out.println("\n--- Remove User ---");
+        university.getUsers().forEach(u ->
+            System.out.printf("  ID: %-8s | %s (%s)%n",
+                u.getId(), u.getFullName(), u.getClass().getSimpleName()));
+        System.out.print("Enter User ID to remove: ");
+        String id = scanner.nextLine().trim();
+        boolean removed = university.removeUser(id);
+        System.out.println(removed ? "User removed successfully." : "User not found.");
+    }
+
+    private static void handleUpdateUser() {
+        System.out.println("\n--- Update User ---");
+        university.getUsers().forEach(u ->
+            System.out.printf("  ID: %-8s | %s | login: %s%n",
+                u.getId(), u.getFullName(), u.getLogin()));
+        System.out.print("Enter User ID to update: ");
+        String id = scanner.nextLine().trim();
+        User target = university.findUserById(id);
+        if (target == null) { System.out.println("User not found."); return; }
+
+        System.out.println("What to update?");
+        System.out.println("1. First Name");
+        System.out.println("2. Last Name");
+        System.out.println("3. Email");
+        System.out.println("4. Password");
+        System.out.print("Choice: ");
+        String choice = scanner.nextLine().trim();
+        System.out.print("New value: ");
+        String val = scanner.nextLine().trim();
+        switch (choice) {
+            case "1" -> target.setFirstName(val);
+            case "2" -> target.setLastName(val);
+            case "3" -> target.setEmail(val);
+            case "4" -> target.setPassword(val);
+            default  -> { System.out.println("Invalid choice."); return; }
+        }
+        System.out.println("Updated: " + target.getFullName());
+    }
     // =========================================================================
     // 2. КАБИНЕТ МЕНЕДЖЕРА
     // =========================================================================
     private static void runManagerMenu(Manager manager) {
-        System.out.println("\n--- [Панель Менеджера] ---");
-        System.out.println("1. Назначить курс преподавателю (Assign teacher)");
-        System.out.println("2. Создать новый учебный курс (Add Course)");
-        System.out.println("3. Сгенерировать отчет успеваемости по факультету");
-        System.out.println("4. Просмотреть студентов KBTU по рейтингу GPA");
-        System.out.println("5. Отправить сообщение сотруднику");
-        System.out.println("6. Посмотреть почтовый ящик");
-        System.out.println("7. Выйти из системы (Logout)");
-        System.out.print("Выберите действие: ");
+    	System.out.println("1. Назначить курс преподавателю (Assign teacher)");
+    	System.out.println("2. Создать новый учебный курс (Add Course)");
+    	System.out.println("3. Одобрить регистрацию студента");
+    	System.out.println("4. Сгенерировать отчет успеваемости");
+    	System.out.println("5. Просмотреть студентов по GPA");
+    	System.out.println("6. Просмотреть студентов по алфавиту");
+    	System.out.println("7. Управление новостями");
+    	System.out.println("8. Просмотреть заявки сотрудников");
+    	System.out.println("9. Отправить сообщение");
+    	System.out.println("10. Посмотреть почтовый ящик");
+    	System.out.println("11. Выйти из системы (Logout)");
 
         String choice = scanner.nextLine().trim();
-        switch (choice) {
-            case "1" -> System.out.println("[Менеджмент]: Назначение преподавателей через manager.assignTeacher()...");
-            case "2" -> {
-                System.out.println("\n[Создание нового курса]:");
-                System.out.print("Введите код курса (например, CSCI2102): "); String code = scanner.nextLine().trim();
-                System.out.print("Введите название курса: "); String name = scanner.nextLine().trim();
-                Course newCourse = new Course(code, name, 3, CourseType.MAJOR);
-                university.addCourse(newCourse);
-                System.out.println("Новый курс успешно добавлен в академический каталог.");
-            }
-            case "3" -> System.out.println("\n=== Факультет SITE: Средний GPA: 3.45. Успеваемость: 92%. ===");
-            case "4" -> {
-                System.out.println("\n--- Рейтинг студентов университета (По GPA) ---");
-                university.getUsers().stream()
-                        .filter(u -> u instanceof Student)
-                        .map(u -> (Student) u)
-                        .sorted((s1, s2) -> Double.compare(s2.getGpa(), s1.getGpa()))
-                        .forEach(s -> System.out.printf("%s %s | GPA: %.2f%n", s.getFirstName(), s.getLastName(), s.getGpa()));
-            }
-            case "5" -> handleSendMessageMenu(manager);
-            case "6" -> handleViewMailboxMenu(manager);
-            case "7" -> currentUser = null;
-            default -> System.out.println("Неверный выбор.");
+        switch (scanner.nextLine().trim()) {
+        case "1"  -> handleAssignTeacher(manager);
+        case "2"  -> {
+            System.out.println("\n[Создание нового курса]:");
+            System.out.print("Введите код курса (например, CSCI2102): "); String code = scanner.nextLine().trim();
+            System.out.print("Введите название курса: "); String name = scanner.nextLine().trim();
+            Course newCourse = new Course(code, name, 3, CourseType.MAJOR);
+            university.addCourse(newCourse);
+            System.out.println("Курс успешно добавлен.");
         }
+        case "3"  -> handleApproveRegistration(manager);
+        case "4"  -> {
+            List<Student> students = university.getUsers().stream()
+                .filter(u -> u instanceof Student).map(u -> (Student) u).toList();
+            manager.createReport(students);
+        }
+        case "5"  -> {
+            List<Student> students = university.getUsers().stream()
+                .filter(u -> u instanceof Student).map(u -> (Student) u).toList();
+            manager.viewStudentsByGpa(students);
+        }
+        case "6"  -> {
+            List<Student> students = university.getUsers().stream()
+                .filter(u -> u instanceof Student).map(u -> (Student) u).toList();
+            manager.viewStudentsAlphabetically(students);
+        }
+        case "7"  -> handleManageNews(manager);
+        case "8"  -> manager.viewRequests(university.getRequests());
+        case "9"  -> handleSendMessageMenu(manager);
+        case "10" -> handleViewMailboxMenu(manager);
+        case "11" -> { currentUser = null; System.out.println("Logged out."); }
+        default   -> System.out.println("Неверный выбор.");
+        }
+    }
+    
+    private static void handleApproveRegistration(Manager manager) {
+        System.out.println("\n--- Approve Student Registration ---");
+        List<Student> students = university.getUsers().stream()
+                .filter(u -> u instanceof Student).map(u -> (Student) u).toList();
+        if (students.isEmpty()) { System.out.println("No students."); return; }
+        students.forEach(s -> System.out.printf("  login: %-15s | %s%n",
+                s.getLogin(), s.getFullName()));
+
+        System.out.print("Student login: ");
+        String sLogin = scanner.nextLine().trim();
+        Student student = students.stream()
+                .filter(s -> s.getLogin().equalsIgnoreCase(sLogin))
+                .findFirst().orElse(null);
+        if (student == null) { System.out.println("Student not found."); return; }
+
+        System.out.println("Courses:");
+        university.getCourses().forEach(c -> System.out.println("  " + c));
+        System.out.print("Course code: ");
+        String code = scanner.nextLine().trim();
+        Course course = university.getCourses().stream()
+                .filter(c -> c.getCode().equalsIgnoreCase(code))
+                .findFirst().orElse(null);
+        if (course == null) { System.out.println("Course not found."); return; }
+
+        manager.approveRegistration(student, course);
+    }
+
+    private static void handleManageNews(Manager manager) {
+        System.out.println("\n--- Manage News ---");
+        System.out.println("1. Add news");
+        System.out.println("2. View all news");
+        System.out.print("Choice: ");
+        String choice = scanner.nextLine().trim();
+        if (choice.equals("1")) {
+            System.out.print("Title: ");
+            String title = scanner.nextLine().trim();
+            System.out.print("Content: ");
+            String content = scanner.nextLine().trim();
+            System.out.print("Topic (RESEARCH / GENERAL): ");
+            String topic = scanner.nextLine().trim();
+            News news = new News(title, content, topic);
+            university.addNews(news);
+            System.out.println("News added. Pinned: " + news.isPinned());
+        } else if (choice.equals("2")) {
+            List<News> newsList = new java.util.ArrayList<>(university.getNews());
+            java.util.Collections.sort(newsList);
+            if (newsList.isEmpty()) { System.out.println("No news."); return; }
+            newsList.forEach(System.out::println);
+        }
+    } 
+    
+    private static void handleAssignTeacher(Manager manager) {
+        System.out.println("\n--- Assign Teacher to Course ---");
+        List<Teacher> teachers = university.getUsers().stream()
+                .filter(u -> u instanceof Teacher)
+                .map(u -> (Teacher) u)
+                .toList();
+        if (teachers.isEmpty()) { System.out.println("No teachers in system."); return; }
+        teachers.forEach(t -> System.out.printf("  login: %-15s | %s | %s%n",
+                t.getLogin(), t.getFullName(), t.getPosition()));
+
+        System.out.println("Courses:");
+        university.getCourses().forEach(c -> System.out.println("  " + c));
+
+        System.out.print("Teacher login: ");
+        String tLogin = scanner.nextLine().trim();
+        Teacher teacher = teachers.stream()
+                .filter(t -> t.getLogin().equalsIgnoreCase(tLogin))
+                .findFirst().orElse(null);
+        if (teacher == null) { System.out.println("Teacher not found."); return; }
+
+        System.out.print("Course code: ");
+        String code = scanner.nextLine().trim();
+        Course course = university.getCourses().stream()
+                .filter(c -> c.getCode().equalsIgnoreCase(code))
+                .findFirst().orElse(null);
+        if (course == null) { System.out.println("Course not found."); return; }
+
+        manager.assignTeacher(teacher, course);
     }
 
     // =========================================================================
@@ -155,8 +366,10 @@ public class ConsoleInterface {
         System.out.println("2. Посмотреть список студентов на моих курсах");
         System.out.println("3. Отправить сообщение (Send Message)");
         System.out.println("4. Проверить почтовый ящик (Mailbox)");
-        System.out.println("5. Отправить жалобу в деканат (Send Complaint)");
-        System.out.println("6. Выйти из системы (Logout)");
+        System.out.println("5. Выставить оценку студенту (Put Mark)");
+        System.out.println("6. Отправить жалобу в деканат (Send Complaint)");
+        System.out.println("7. Мои научные статьи (Research)");
+        System.out.println("8. Выйти из системы (Logout)");
         System.out.print("Выберите действие: ");
 
         String choice = scanner.nextLine().trim();
@@ -165,11 +378,205 @@ public class ConsoleInterface {
             case "2" -> teacher.viewStudents();
             case "3" -> handleSendMessageMenu(teacher);
             case "4" -> handleViewMailboxMenu(teacher);
-            case "5" -> System.out.println("[Жалобы]: Отправка жалобы с уровнями LOW, MEDIUM, HIGH...");
-            case "6" -> currentUser = null;
+            case "5" -> handlePutMark(teacher);
+            case "6" -> handleSendComplaint(teacher);
+            case "7" -> handleResearcherMenu(teacher);
+            case "8" -> { currentUser = null; System.out.println("Logged out."); }
             default -> System.out.println("Неверный выбор.");
         }
     }
+    
+    private static void handleResearcherMenu(Researcher researcher) {
+        System.out.println("\n--- Research Menu ---");
+        System.out.println("1. View my papers");
+        System.out.println("2. Add paper");
+        System.out.println("3. View h-index");
+        System.out.println("4. Print papers by citations");
+        System.out.println("5. Создать Research Project");
+        System.out.println("6. Просмотреть мои проекты");
+        System.out.println("7. Back");
+        System.out.print("Choice: ");
+        switch (scanner.nextLine().trim()) {
+            case "1" -> {
+                List<university.research.ResearchPaper> papers = researcher.getPapers();
+                if (papers.isEmpty()) { System.out.println("No papers yet."); return; }
+                papers.forEach(System.out::println);
+            }
+            case "2" -> {
+                try {
+                    System.out.print("Title: ");
+                    String title = scanner.nextLine().trim();
+                    System.out.print("Authors (comma separated): ");
+                    List<String> authors = Arrays.asList(scanner.nextLine().split(","));
+                    System.out.print("Journal: ");
+                    String journal = scanner.nextLine().trim();
+                    System.out.print("Start page: ");
+                    int start = Integer.parseInt(scanner.nextLine().trim());
+                    System.out.print("End page: ");
+                    int end = Integer.parseInt(scanner.nextLine().trim());
+                    System.out.print("Year (e.g. 2024): ");
+                    int year = Integer.parseInt(scanner.nextLine().trim());
+                    System.out.print("DOI: ");
+                    String doi = scanner.nextLine().trim();
+                    System.out.print("Citations: ");
+                    int citations = Integer.parseInt(scanner.nextLine().trim());
+
+                    university.research.ResearchPaper paper = new university.research.ResearchPaper(
+                            title, authors, journal, start, end,
+                            LocalDate.of(year, 1, 1), doi, citations);
+                    researcher.addPaper(paper);
+                    System.out.println("Paper added successfully.");
+                } catch (NumberFormatException e) {
+                    System.out.println("Error: enter a number.");
+                }
+            }
+            case "3" -> System.out.println("Your h-index: " + researcher.calculateHIndex());
+            case "4" -> {
+                Comparator<university.research.ResearchPaper> byCitations =
+                    (p1, p2) -> Integer.compare(p2.getCitations(), p1.getCitations());
+                researcher.printPapers(byCitations);
+            }
+            case "5" -> handleCreateResearchProject(researcher);
+            case "6" -> {
+                List<university.research.ResearchProject> projects = researcher.getProjects();
+                if (projects.isEmpty()) { System.out.println("No projects yet."); return; }
+                projects.forEach(System.out::println);
+            }
+            case "7" -> { return; }
+            default  -> System.out.println("Invalid choice.");
+        }
+    }
+    
+    private static void handleCreateResearchProject(Researcher researcher) {
+        System.out.println("\n--- Create Research Project ---");
+        System.out.print("Project ID: ");
+        String id = scanner.nextLine().trim();
+        System.out.print("Topic: ");
+        String topic = scanner.nextLine().trim();
+        if (id.isEmpty() || topic.isEmpty()) {
+            System.out.println("ID and topic cannot be empty.");
+            return;
+        }
+
+        university.research.ResearchProject project =
+                new university.research.ResearchProject(id, topic);
+
+        try {
+            project.addParticipant(researcher);
+        } catch (university.exceptions.NotAResearcherException e) {
+            System.out.println("Error: " + e.getMessage());
+            return;
+        }
+
+        researcher.addProject(project);
+        System.out.println("Project created: " + project);
+
+        // Предложить добавить других участников
+        System.out.print("Add another researcher? (y/n): ");
+        if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
+            List<Teacher> teachers = university.getUsers().stream()
+                    .filter(u -> u instanceof Teacher)
+                    .map(u -> (Teacher) u)
+                    .toList();
+            teachers.forEach(t -> System.out.printf("  login: %-15s | %s | h-index: %d%n",
+                    t.getLogin(), t.getFullName(), t.calculateHIndex()));
+            System.out.print("Teacher login: ");
+            String tLogin = scanner.nextLine().trim();
+            Teacher teacher = teachers.stream()
+                    .filter(t -> t.getLogin().equalsIgnoreCase(tLogin))
+                    .findFirst().orElse(null);
+            if (teacher == null) { System.out.println("Teacher not found."); return; }
+            try {
+                project.addParticipant(teacher);
+                System.out.println("Added: " + teacher.getFullName());
+            } catch (university.exceptions.NotAResearcherException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        }
+    }
+    
+    private static void handlePutMark(Teacher teacher) {
+        System.out.println("\n--- Put Mark ---");
+        List<Student> students = university.getUsers().stream()
+                .filter(u -> u instanceof Student)
+                .map(u -> (Student) u)
+                .toList();
+        if (students.isEmpty()) { System.out.println("No students in system."); return; }
+        students.forEach(s -> System.out.printf("  login: %-15s | %s%n", s.getLogin(), s.getFullName()));
+
+        System.out.print("Student login: ");
+        String sLogin = scanner.nextLine().trim();
+        Student student = students.stream()
+                .filter(s -> s.getLogin().equalsIgnoreCase(sLogin))
+                .findFirst().orElse(null);
+        if (student == null) { System.out.println("Student not found."); return; }
+
+        System.out.println("Courses:");
+        university.getCourses().forEach(c -> System.out.println("  " + c));
+        System.out.print("Course code: ");
+        String code = scanner.nextLine().trim();
+        Course course = university.getCourses().stream()
+                .filter(c -> c.getCode().equalsIgnoreCase(code))
+                .findFirst().orElse(null);
+        if (course == null) { System.out.println("Course not found."); return; }
+
+        try {
+            System.out.print("Attestation 1 (0-30): ");
+            double att1 = Double.parseDouble(scanner.nextLine().trim());
+            System.out.print("Attestation 2 (0-30): ");
+            double att2 = Double.parseDouble(scanner.nextLine().trim());
+            System.out.print("Final exam (0-40): ");
+            double fin = Double.parseDouble(scanner.nextLine().trim());
+
+            Mark mark = new Mark(course, student);
+            mark.setAtt1(att1);
+            mark.setAtt2(att2);
+            mark.setFinalExam(fin);
+            teacher.putMark(student, course, mark);
+            System.out.printf("Mark saved: %.1f (%s)%n", mark.getTotal(), mark.getLetterGrade());
+        } catch (NumberFormatException e) {
+            System.out.println("Error: enter a number.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    private static void handleSendComplaint(Teacher teacher) {
+        System.out.println("\n--- Send Complaint to Dean ---");
+        List<Student> students = university.getUsers().stream()
+                .filter(u -> u instanceof Student)
+                .map(u -> (Student) u)
+                .toList();
+        if (students.isEmpty()) { System.out.println("No students in system."); return; }
+        students.forEach(s -> System.out.printf("  login: %-15s | %s%n", s.getLogin(), s.getFullName()));
+
+        System.out.print("Student login: ");
+        String sLogin = scanner.nextLine().trim();
+        Student student = students.stream()
+                .filter(s -> s.getLogin().equalsIgnoreCase(sLogin))
+                .findFirst().orElse(null);
+        if (student == null) { System.out.println("Student not found."); return; }
+
+        List<Manager> managers = university.getUsers().stream()
+                .filter(u -> u instanceof Manager)
+                .map(u -> (Manager) u)
+                .toList();
+        if (managers.isEmpty()) { System.out.println("No managers in system."); return; }
+        Manager dean = managers.get(0);
+
+        System.out.println("Urgency: 1. LOW  2. MEDIUM  3. HIGH");
+        System.out.print("Choice: ");
+        String urg = scanner.nextLine().trim();
+        UrgencyLevel level = switch (urg) {
+            case "2" -> UrgencyLevel.MEDIUM;
+            case "3" -> UrgencyLevel.HIGH;
+            default  -> UrgencyLevel.LOW;
+        };
+
+        teacher.sendComplaint(student, dean, level);
+    }
+    
+    
 
     // =========================================================================
     // 4. ПОЛНОЦЕННЫЙ КАБИНЕТ СТУДЕНТА (ВОССТАНОВЛЕНО НА 100%)
@@ -181,7 +588,11 @@ public class ConsoleInterface {
         System.out.println("3. Распечатать академический транскрипт и GPA");
         System.out.println("4. Написать сообщение (Студенческие организации/Коллеги)");
         System.out.println("5. Посмотреть мой почтовый ящик (Mailbox)");
-        System.out.println("6. Выйти из системы (Logout)");
+        System.out.println("6. Оценить преподавателя (Rate Teacher)");
+        System.out.println("7. Студенческие организации");
+        System.out.println("8. Подписаться на журнал");
+        System.out.println("9. Сменить язык (Switch Language)");
+        System.out.println("10. Выйти из системы (Logout)");
         System.out.print("Выберите действие: ");
 
         String choice = scanner.nextLine().trim();
@@ -211,8 +622,135 @@ public class ConsoleInterface {
             case "3" -> System.out.println(student.getTranscript().toString());
             case "4" -> handleSendMessageMenu(student);
             case "5" -> handleViewMailboxMenu(student);
-            case "6" -> currentUser = null;
+            case "6" -> handleRateTeacher(student);
+            case "7" -> handleStudentOrganizations(student);
+            case "8" -> handleJournalSubscription(student);
+            case "9" -> handleSwitchLanguage(currentUser);
+            case "10" -> { currentUser = null; System.out.println("Logged out."); }
             default -> System.out.println("Неверный выбор.");
+        }
+    }
+    
+    private static void handleJournalSubscription(User user) {
+        System.out.println("\n--- University Journals ---");
+        List<university.research.journal.UniversityJournal> journals = university.getJournals();
+        if (journals.isEmpty()) { System.out.println("No journals available."); return; }
+
+        journals.forEach(j -> System.out.printf("  ID: %-8s | %s | ISSN: %s | papers: %d%n",
+                j.getJournalId(), j.getName(), j.getIssn(), j.getPapers().size()));
+
+        System.out.println("1. Подписаться на журнал");
+        System.out.println("2. Back");
+        System.out.print("Choice: ");
+
+        if (!scanner.nextLine().trim().equals("1")) return;
+
+        System.out.print("Journal ID: ");
+        String jid = scanner.nextLine().trim();
+        university.research.journal.UniversityJournal journal = journals.stream()
+                .filter(j -> j.getJournalId().equalsIgnoreCase(jid))
+                .findFirst().orElse(null);
+        if (journal == null) { System.out.println("Journal not found."); return; }
+
+        journal.subscribe((paper, j) -> System.out.printf(
+                "[%s] Уведомление: новая статья '%s' опубликована в журнале '%s'%n",
+                user.getFullName(), paper.getTitle(), j.getName()));
+        System.out.println("Вы подписаны на: " + journal.getName());
+    }
+    
+    
+    
+    private static void handleStudentOrganizations(Student student) {
+        System.out.println("\n--- Student Organizations ---");
+        System.out.println("1. Просмотреть все организации");
+        System.out.println("2. Вступить в организацию");
+        System.out.println("3. Создать организацию");
+        System.out.println("4. Покинуть организацию");
+        System.out.print("Choice: ");
+
+        switch (scanner.nextLine().trim()) {
+            case "1" -> {
+                List<StudentOrganization> orgs = university.getOrganizations();
+                if (orgs.isEmpty()) { System.out.println("No organizations yet."); return; }
+                orgs.forEach(System.out::println);
+            }
+            case "2" -> {
+                List<StudentOrganization> orgs = university.getOrganizations();
+                if (orgs.isEmpty()) { System.out.println("No organizations yet."); return; }
+                orgs.forEach(o -> System.out.printf("  %d. %s%n",
+                        orgs.indexOf(o) + 1, o.getName()));
+                System.out.print("Enter organization name: ");
+                String name = scanner.nextLine().trim();
+                StudentOrganization org = orgs.stream()
+                        .filter(o -> o.getName().equalsIgnoreCase(name))
+                        .findFirst().orElse(null);
+                if (org == null) { System.out.println("Organization not found."); return; }
+                org.addMember(student);
+            }
+            case "3" -> {
+                System.out.print("Organization name: ");
+                String name = scanner.nextLine().trim();
+                if (name.isEmpty()) { System.out.println("Name cannot be empty."); return; }
+                StudentOrganization org = new StudentOrganization(name, student);
+                university.addOrganization(org);
+                System.out.println("Organization '" + name + "' created. You are the head.");
+            }
+            case "4" -> {
+                List<StudentOrganization> orgs = university.getOrganizations();
+                if (orgs.isEmpty()) { System.out.println("No organizations."); return; }
+                System.out.print("Enter organization name: ");
+                String name = scanner.nextLine().trim();
+                StudentOrganization org = orgs.stream()
+                        .filter(o -> o.getName().equalsIgnoreCase(name))
+                        .findFirst().orElse(null);
+                if (org == null) { System.out.println("Organization not found."); return; }
+                org.removeMember(student);
+            }
+            default -> System.out.println("Invalid choice.");
+        }
+    }
+    
+    private static void handleSwitchLanguage(User user) {
+        System.out.println("\n--- Switch Language ---");
+        System.out.println("1. English (EN)");
+        System.out.println("2. Казахский (KZ)");
+        System.out.println("3. Русский (RU)");
+        System.out.print("Choice: ");
+        String choice = scanner.nextLine().trim();
+        String lang = switch (choice) {
+            case "2" -> "KZ";
+            case "3" -> "RU";
+            default  -> "EN";
+        };
+        user.switchLanguage(lang);
+        System.out.println("Language switched to: " + lang);
+    }
+    
+    private static void handleRateTeacher(Student student) {
+        System.out.println("\n--- Rate Teacher ---");
+        List<Teacher> teachers = university.getUsers().stream()
+                .filter(u -> u instanceof Teacher)
+                .map(u -> (Teacher) u)
+                .toList();
+        if (teachers.isEmpty()) { System.out.println("No teachers in system."); return; }
+        teachers.forEach(t -> System.out.printf("  login: %-15s | %s | avg rating: %.1f%n",
+                t.getLogin(), t.getFullName(), t.getRating()));
+
+        System.out.print("Teacher login: ");
+        String tLogin = scanner.nextLine().trim();
+        Teacher teacher = teachers.stream()
+                .filter(t -> t.getLogin().equalsIgnoreCase(tLogin))
+                .findFirst().orElse(null);
+        if (teacher == null) { System.out.println("Teacher not found."); return; }
+
+        System.out.print("Rating (1-10): ");
+        try {
+            int rating = Integer.parseInt(scanner.nextLine().trim());
+            student.rateTeacher(teacher, rating);
+            System.out.printf("Done! %s new average rating: %.1f%n",
+                    teacher.getFullName(), teacher.getRating());
+        } catch (NumberFormatException e) {
+            System.out.println("Error: enter a number.");
         }
     }
 
@@ -222,17 +760,29 @@ public class ConsoleInterface {
     private static void runTechSupportMenu(TechSupportSpecialist techSupport) {
         System.out.println("\n--- [Панель Технической Поддержки] ---");
         System.out.println("1. Проверить системный журнал логов (View System Logs)");
-        System.out.println("2. Просмотреть входящие заявки на ремонт (Requests)");
-        System.out.println("3. Выйти из системы (Logout)");
+        System.out.println("2. Просмотреть входящие заявки (Requests)");
+        System.out.println("3. Создать новую заявку (New Request)");
+        System.out.println("4. Выйти из системы (Logout)");
         System.out.print("Выберите действие: ");
 
         String choice = scanner.nextLine().trim();
         switch (choice) {
-            case "1" -> printLogsFromFile();
-            case "2" -> handleRequestsMenu();
-            case "3" -> currentUser = null;
+        case "1" -> printLogsFromFile();
+        case "2" -> handleRequestsMenu();
+        case "3" -> handleCreateRequest(techSupport);
+        case "4" -> { currentUser = null; System.out.println("Logged out."); }
             default -> System.out.println("Неверный выбор.");
         }
+    }
+    
+    private static void handleCreateRequest(User sender) {
+        System.out.println("\n--- Create New Request ---");
+        System.out.print("Describe the problem: ");
+        String description = scanner.nextLine().trim();
+        if (description.isEmpty()) { System.out.println("Description cannot be empty."); return; }
+        Request request = new Request(sender, description);
+        university.addRequest(request);
+        System.out.println("Request created: " + request.getId());
     }
 
     // =========================================================================

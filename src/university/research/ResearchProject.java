@@ -1,6 +1,6 @@
 package university.research;
 
-import exceptions.NotAResearcherException;
+import university.exceptions.NotAResearcherException;
 
 import java.util.ArrayList;
 import java.util.List;

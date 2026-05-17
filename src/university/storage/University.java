@@ -1,12 +1,13 @@
 package university.storage;
 
-import university.academic.Mark;
+
 import university.exceptions.CourseFailLimitException;
 import university.exceptions.MaxCreditsException;
 import university.users.User;
 import university.academic.Course;
 import university.communications.News;
 import university.communications.Request;
+import university.users.StudentOrganization;
 
 import java.io.*;
 import java.util.*;
@@ -24,7 +25,10 @@ public class University implements Serializable {
     private final List<Course> courses = new ArrayList<>();
     private final List<News> news = new ArrayList<>();
     private final List<Request> requests = new ArrayList<>();
-
+    private final List<StudentOrganization> organizations = new ArrayList<>();
+    private final List<university.research.journal.UniversityJournal> journals = new ArrayList<>();
+   
+    
     // Приватный конструктор исключает создание через new извне
     private University() {}
 
@@ -50,12 +54,11 @@ public class University implements Serializable {
         // 2. Если исключение не вылетело, добавляем студента в ведомость курса
         course.enrollStudent(student);
 
-        // 3. Автоматически создаем пустую структуру оценок для этого курса у студента
-        student.getMarks().put(course, new Mark(course, student));
+
     }
 
     public synchronized void save() {
-        UniversitySnapshot snapshot = new UniversitySnapshot(users, courses, news, requests);
+    	UniversitySnapshot snapshot = new UniversitySnapshot(users, courses, news, requests, allMessages);
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(DATA_FILE))) {
             oos.writeObject(snapshot);
         } catch (IOException e) {
@@ -79,6 +82,7 @@ public class University implements Serializable {
             this.courses.addAll(snapshot.courses());
             this.news.addAll(snapshot.news());
             this.requests.addAll(snapshot.requests());
+            if (snapshot.messages() != null) this.allMessages.addAll(snapshot.messages());
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException("Критическая ошибка при чтении базы данных", e);
         }
@@ -99,6 +103,32 @@ public class University implements Serializable {
 
     public synchronized void addRequest(Request request) {
         this.requests.add(Objects.requireNonNull(request, "Запрос не может быть null"));
+    }
+    
+    public synchronized void addOrganization(StudentOrganization org) {
+        organizations.add(Objects.requireNonNull(org));
+    }
+
+    public List<StudentOrganization> getOrganizations() {
+        return Collections.unmodifiableList(organizations);
+    }
+    
+    public synchronized void addJournal(university.research.journal.UniversityJournal journal) {
+        journals.add(Objects.requireNonNull(journal));
+    }
+
+    public List<university.research.journal.UniversityJournal> getJournals() {
+        return Collections.unmodifiableList(journals);
+    }
+    
+    public synchronized boolean removeUser(String userId) {
+        return users.removeIf(u -> u.getId().equals(userId));
+    }
+
+    public User findUserById(String userId) {
+        return users.stream()
+                .filter(u -> u.getId().equals(userId))
+                .findFirst().orElse(null);
     }
 
     public void sendMessage(university.users.User sender, university.users.User receiver, String text) {
@@ -128,7 +158,8 @@ public class University implements Serializable {
             List<User> users,
             List<Course> courses,
             List<News> news,
-            List<Request> requests
+            List<Request> requests,
+            List<university.communications.Message> messages
     ) implements Serializable {
         @Serial private static final long serialVersionUID = 2026L;
     }

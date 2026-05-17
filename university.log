@@ -56,3 +56,13 @@ INFO: User created: Алексей Фиксов (ID: TS001)
 INFO: Course Object-Oriented Programming registered for student S123
 мая 17, 2026 10:30:56 PM university.users.User <init>
 INFO: User created: Главный Администратор (ID: A001)
+May 18, 2026 12:15:34 AM university.users.User <init>
+INFO: User created: Admin Root (ID: A001)
+May 18, 2026 12:15:34 AM university.users.User <init>
+INFO: User created: Aigerim Bekova (ID: T001)
+May 18, 2026 12:15:34 AM university.users.User <init>
+INFO: User created: Daniyar Seitkali (ID: M001)
+May 18, 2026 12:15:34 AM university.users.User <init>
+INFO: User created: Amir Nurlan (ID: S001)
+May 18, 2026 12:15:34 AM university.users.User <init>
+INFO: User created: Marat Omarov (ID: TS001)

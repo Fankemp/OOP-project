@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class ResearchProfile {
+public class ResearchProfile implements java.io.Serializable {
+    private static final long serialVersionUID = 2026L;
 
     private final String ownerId;
     private final List<ResearchPaper> papers;

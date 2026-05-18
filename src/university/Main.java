@@ -67,6 +67,9 @@ public class Main {
         Course math = new Course("MATH1101", "Calculus", 3, CourseType.MINOR);
         university.addCourse(oop);
         university.addCourse(math);
+        Course oilGas = new Course("OG1101", "Introduction to Oil and Gas", 3, CourseType.MAJOR);
+        oilGas.setTargetMajor("OilGas");
+        university.addCourse(oilGas);
         
         university.research.journal.UniversityJournal journal =
                 new university.research.journal.UniversityJournal("J001", "KBTU Research Journal", "1234-5678");

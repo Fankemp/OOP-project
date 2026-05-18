@@ -25,7 +25,12 @@ import java.util.Scanner;
 import university.communications.News;
 import university.exceptions.LowHIndexException;
 import university.users.StudentOrganization;
-import university.users.StudentOrganization;
+
+import university.research.ResearchManager;
+import university.enums.LessonType;
+import university.communications.OfficialMessage;
+import university.enums.DegreeType;
+import university.users.GraduateStudent;
 
 /**
  * Слой представления (View). Отвечает за весь интерактивный текстовый интерфейс системы KBTU.
@@ -236,11 +241,12 @@ public class ConsoleInterface {
     	System.out.println("6. Просмотреть студентов по алфавиту");
     	System.out.println("7. Управление новостями");
     	System.out.println("8. Просмотреть заявки сотрудников");
-    	System.out.println("9. Отправить сообщение");
-    	System.out.println("10. Посмотреть почтовый ящик");
-    	System.out.println("11. Выйти из системы (Logout)");
+    	System.out.println("9. Официальные сообщения");
+    	System.out.println("10. Отправить сообщение");
+    	System.out.println("11. Посмотреть почтовый ящик");
+    	System.out.println("12. Выйти из системы (Logout)");
 
-        String choice = scanner.nextLine().trim();
+    
         switch (scanner.nextLine().trim()) {
         case "1"  -> handleAssignTeacher(manager);
         case "2"  -> {
@@ -269,13 +275,39 @@ public class ConsoleInterface {
         }
         case "7"  -> handleManageNews(manager);
         case "8"  -> manager.viewRequests(university.getRequests());
-        case "9"  -> handleSendMessageMenu(manager);
-        case "10" -> handleViewMailboxMenu(manager);
-        case "11" -> { currentUser = null; System.out.println("Logged out."); }
+        case "9"  -> handleOfficialMessages(manager);
+        case "10" -> handleSendMessageMenu(manager);
+        case "11" -> handleViewMailboxMenu(manager);
+        case "12" -> { currentUser = null; System.out.println("Logged out."); }
         default   -> System.out.println("Неверный выбор.");
         }
     }
     
+    private static void handleOfficialMessages(Manager manager) {
+        System.out.println("\n--- Официальные сообщения ---");
+        System.out.println("1. Создать сообщение");
+        System.out.println("2. Просмотреть все сообщения");
+        System.out.print("Выберите действие: ");
+
+        switch (scanner.nextLine().trim()) {
+            case "1" -> {
+                System.out.print("Тема: ");
+                String subject = scanner.nextLine().trim();
+                System.out.print("Текст (например: Бронирование ауд. 302 для экзамена): ");
+                String body = scanner.nextLine().trim();
+                OfficialMessage msg = new OfficialMessage(
+                        "OM-" + System.currentTimeMillis(), subject, body, manager);
+                university.addOfficialMessage(msg);
+                System.out.println("Сообщение создано.");
+            }
+            case "2" -> {
+                List<OfficialMessage> msgs = university.getOfficialMessages();
+                if (msgs.isEmpty()) { System.out.println("Нет сообщений."); return; }
+                msgs.forEach(System.out::println);
+            }
+            default -> System.out.println("Неверный выбор.");
+        }
+    }
     private static void handleApproveRegistration(Manager manager) {
         System.out.println("\n--- Approve Student Registration ---");
         List<Student> students = university.getUsers().stream()
@@ -354,7 +386,14 @@ public class ConsoleInterface {
                 .findFirst().orElse(null);
         if (course == null) { System.out.println("Course not found."); return; }
 
-        manager.assignTeacher(teacher, course);
+        System.out.println("Lesson type: 1. LECTURE  2. PRACTICE");
+        System.out.print("Choice: ");
+        String lessonChoice = scanner.nextLine().trim();
+        LessonType lessonType = lessonChoice.equals("2") ? LessonType.PRACTICE : LessonType.LECTURE;
+        course.addTeacher(teacher, lessonType);
+        teacher.addCourse(course);
+        System.out.printf("Teacher %s assigned to %s as %s instructor.%n",
+                teacher.getFullName(), course.getName(), lessonType);
     }
 
     // =========================================================================
@@ -372,8 +411,8 @@ public class ConsoleInterface {
         System.out.println("8. Выйти из системы (Logout)");
         System.out.print("Выберите действие: ");
 
-        String choice = scanner.nextLine().trim();
-        switch (choice) {
+        
+        switch (scanner.nextLine().trim()) {
             case "1" -> teacher.viewCourses();
             case "2" -> teacher.viewStudents();
             case "3" -> handleSendMessageMenu(teacher);
@@ -387,15 +426,17 @@ public class ConsoleInterface {
     }
     
     private static void handleResearcherMenu(Researcher researcher) {
-        System.out.println("\n--- Research Menu ---");
-        System.out.println("1. View my papers");
-        System.out.println("2. Add paper");
-        System.out.println("3. View h-index");
-        System.out.println("4. Print papers by citations");
-        System.out.println("5. Создать Research Project");
-        System.out.println("6. Просмотреть мои проекты");
-        System.out.println("7. Back");
-        System.out.print("Choice: ");
+    	System.out.println("\n--- Меню Исследователя ---");
+    	System.out.println("1. Мои статьи");
+    	System.out.println("2. Добавить статью");
+    	System.out.println("3. Посмотреть h-index");
+    	System.out.println("4. Статьи по цитированиям");
+    	System.out.println("5. Все статьи университета");
+    	System.out.println("6. Топ цитируемый исследователь года");
+    	System.out.println("7. Создать исследовательский проект");
+    	System.out.println("8. Просмотреть мои проекты");
+    	System.out.println("9. Назад");
+    	System.out.print("Выберите действие: ");
         switch (scanner.nextLine().trim()) {
             case "1" -> {
                 List<university.research.ResearchPaper> papers = researcher.getPapers();
@@ -424,8 +465,32 @@ public class ConsoleInterface {
                     university.research.ResearchPaper paper = new university.research.ResearchPaper(
                             title, authors, journal, start, end,
                             LocalDate.of(year, 1, 1), doi, citations);
+                    ResearchManager.getInstance().registerResearcher(researcher);
                     researcher.addPaper(paper);
                     System.out.println("Paper added successfully.");
+                    
+                    // Автоновость о публикации статьи
+                    String authorName = (researcher instanceof User) ? ((User) researcher).getFullName() : "Researcher";
+                    News paperNews = new News(
+                        "New Research Paper Published",
+                        authorName + " published: \"" + title + "\" in " + journal,
+                        "RESEARCH"
+                    );
+                    university.addNews(paperNews);
+                    System.out.println("Announcement created automatically.");
+
+                    // Автоновость про топ cited researcher
+                    ResearchManager rm = ResearchManager.getInstance();
+                    Researcher top = rm.getTopCitedResearcher();
+                    if (top != null) {
+                        String topName = (top instanceof User) ? ((User) top).getFullName() : "Unknown";
+                        News topNews = new News(
+                            "Top Cited Researcher",
+                            topName + " is the most cited researcher at KBTU with h-index: " + top.calculateHIndex(),
+                            "RESEARCH"
+                        );
+                        university.addNews(topNews);
+                    }
                 } catch (NumberFormatException e) {
                     System.out.println("Error: enter a number.");
                 }
@@ -436,13 +501,34 @@ public class ConsoleInterface {
                     (p1, p2) -> Integer.compare(p2.getCitations(), p1.getCitations());
                 researcher.printPapers(byCitations);
             }
-            case "5" -> handleCreateResearchProject(researcher);
+            case "5" -> {
+                ResearchManager rm = ResearchManager.getInstance();
+                System.out.println("Сортировка: 1. По цитированиям  2. По дате  3. По длине");
+                System.out.print("Выберите: ");
+                String s = scanner.nextLine().trim();
+                Comparator<university.research.ResearchPaper> comp = switch (s) {
+                    case "2" -> new university.research.comparators.PaperByDateComparator();
+                    case "3" -> new university.research.comparators.PaperByLengthComparator();
+                    default  -> new university.research.comparators.PaperByCitationsComparator();
+                };
+                rm.printAllPapers(comp);
+            }
             case "6" -> {
+                System.out.print("Enter year (e.g. 2024): ");
+                try {
+                    int year = Integer.parseInt(scanner.nextLine().trim());
+                    ResearchManager.getInstance().printTopCitedResearcherOfYear(year);
+                } catch (NumberFormatException e) {
+                    System.out.println("Error: enter a number.");
+                }
+            }
+            case "7" -> handleCreateResearchProject(researcher);
+            case "8" -> {
                 List<university.research.ResearchProject> projects = researcher.getProjects();
                 if (projects.isEmpty()) { System.out.println("No projects yet."); return; }
                 projects.forEach(System.out::println);
             }
-            case "7" -> { return; }
+            case "9" -> { return; }
             default  -> System.out.println("Invalid choice.");
         }
     }
@@ -881,16 +967,15 @@ public class ConsoleInterface {
 
     private static void handleCreateUserMenu() {
         System.out.println("\n--- СОЗДАНИЕ НОВОГО ПОЛЬЗОВАТЕЛЯ ---");
-        System.out.println("Выберите роль нового сотрудника/студента:");
         System.out.println("1. Студент (Student)");
-        System.out.println("2. Преподаватель (Teacher)");
-        System.out.println("3. Академический Менеджер (Manager)");
-        System.out.println("4. Специалист Техподдержки (Tech Support)");
-        System.out.println("5. Системный Администратор (Admin)");
-        System.out.print("Ваш выбор (1-5): ");
+        System.out.println("2. Магистр (GraduateStudent)");
+        System.out.println("3. Преподаватель (Teacher)");
+        System.out.println("4. Академический Менеджер (Manager)");
+        System.out.println("5. Специалист Техподдержки (Tech Support)");
+        System.out.println("6. Системный Администратор (Admin)");
+        System.out.print("Ваш выбор (1-6): ");
         String roleChoice = scanner.nextLine().trim();
 
-        // Запрашиваем общие для всех пользователей KBTU поля
         System.out.print("Введите уникальный ID (например, S124, T002): ");
         String id = scanner.nextLine().trim();
         System.out.print("Введите Имя: ");
@@ -899,16 +984,15 @@ public class ConsoleInterface {
         String lastName = scanner.nextLine().trim();
         System.out.print("Введите Электронную почту: ");
         String email = scanner.nextLine().trim();
-        System.out.print("Придумайте уникальный Логин для входа: ");
+        System.out.print("Придумайте уникальный Логин: ");
         String login = scanner.nextLine().trim();
         System.out.print("Придумайте Пароль: ");
         String password = scanner.nextLine().trim();
 
-        // Железная проверка на дубликат логина, чтобы не сломать аутентификацию
         boolean loginExists = university.getUsers().stream()
                 .anyMatch(u -> u.getLogin().equalsIgnoreCase(login));
         if (loginExists) {
-            System.out.println("❌ Ошибка: Пользователь с логином '" + login + "' уже зарегистрирован в системе!");
+            System.out.println("Ошибка: логин '" + login + "' уже существует!");
             return;
         }
 
@@ -916,67 +1000,77 @@ public class ConsoleInterface {
         try {
             switch (roleChoice) {
                 case "1" -> {
-                    System.out.print("Введите факультет студента (Major, например, SITE): ");
+                    System.out.print("Факультет (Major): ");
                     String major = scanner.nextLine().trim();
-                    System.out.print("Введите курс обучения (1-4): ");
+                    System.out.print("Курс обучения (1-4): ");
                     int year = Integer.parseInt(scanner.nextLine().trim());
-
                     newUser = UserFactory.createStudent(id, firstName, lastName, email, login, password, major, year);
                 }
                 case "2" -> {
-                    System.out.print("Введите оклад (Salary): ");
-                    double salary = Double.parseDouble(scanner.nextLine().trim());
-                    System.out.print("Введите кафедру преподавателя (Department, например, FIT): ");
-                    String dept = scanner.nextLine().trim();
-                    System.out.println("Выберите должность: 1. TUTOR | 2. LECTOR | 3. SENIOR_LECTOR | 4. PROFESSOR");
+                    System.out.print("Факультет (Major): ");
+                    String major = scanner.nextLine().trim();
+                    System.out.print("Курс обучения (1-2): ");
+                    int year = Integer.parseInt(scanner.nextLine().trim());
+                    System.out.println("Тип степени: 1. MASTER  2. PHD");
                     System.out.print("Ваш выбор: ");
-                    String posChoice = scanner.nextLine().trim();
-
-                    TeacherPosition position = TeacherPosition.LECTOR;
-                    if (posChoice.equals("1")) position = TeacherPosition.TUTOR;
-                    else if (posChoice.equals("3")) position = TeacherPosition.SENIOR_LECTOR;
-                    else if (posChoice.equals("4")) position = TeacherPosition.PROFESSOR;
-
-                    newUser = UserFactory.createTeacher(id, firstName, lastName, email, login, password, salary, dept, position);
+                    String degreeChoice = scanner.nextLine().trim();
+                    DegreeType degree = degreeChoice.equals("2") ? DegreeType.PHD : DegreeType.MASTER;
+                    newUser = new GraduateStudent(id, firstName, lastName, email, login, password, major, year, degree);
                 }
                 case "3" -> {
-                    System.out.print("Введите оклад (Salary): ");
+                    System.out.print("Оклад (Salary): ");
                     double salary = Double.parseDouble(scanner.nextLine().trim());
-                    System.out.println("Выберите тип офиса: 1. OR (Registrar) | 2. DEPARTMENT | 3. DEAN_OFFICE");
+                    System.out.print("Кафедра (Department): ");
+                    String dept = scanner.nextLine().trim();
+                    System.out.println("Должность: 1. TUTOR  2. LECTOR  3. SENIOR_LECTOR  4. PROFESSOR");
                     System.out.print("Ваш выбор: ");
-                    String typeChoice = scanner.nextLine().trim();
-
-                    ManagerType mType = ManagerType.OR;
-                    if (typeChoice.equals("2")) mType = ManagerType.DEPARTMENT;
-                    else if (typeChoice.equals("3")) mType = ManagerType.DEAN_OFFICE;
-
-                    newUser = UserFactory.createManager(id, firstName, lastName, email, login, password, salary, mType);
+                    String posChoice = scanner.nextLine().trim();
+                    TeacherPosition position = switch (posChoice) {
+                        case "1" -> TeacherPosition.TUTOR;
+                        case "3" -> TeacherPosition.SENIOR_LECTOR;
+                        case "4" -> TeacherPosition.PROFESSOR;
+                        default  -> TeacherPosition.LECTOR;
+                    };
+                    newUser = UserFactory.createTeacher(id, firstName, lastName, email, login, password, salary, dept, position);
                 }
                 case "4" -> {
-                    System.out.print("Введите оклад (Salary): ");
+                    System.out.print("Оклад (Salary): ");
+                    double salary = Double.parseDouble(scanner.nextLine().trim());
+                    System.out.println("Тип офиса: 1. OR  2. DEPARTMENT  3. DEAN_OFFICE");
+                    System.out.print("Ваш выбор: ");
+                    String typeChoice = scanner.nextLine().trim();
+                    ManagerType mType = switch (typeChoice) {
+                        case "2" -> ManagerType.DEPARTMENT;
+                        case "3" -> ManagerType.DEAN_OFFICE;
+                        default  -> ManagerType.OR;
+                    };
+                    newUser = UserFactory.createManager(id, firstName, lastName, email, login, password, salary, mType);
+                }
+                case "5" -> {
+                    System.out.print("Оклад (Salary): ");
                     double salary = Double.parseDouble(scanner.nextLine().trim());
                     newUser = UserFactory.createTechSupport(id, firstName, lastName, email, login, password, salary);
                 }
-                case "5" -> {
-                    System.out.print("Введите оклад (Salary): ");
+                case "6" -> {
+                    System.out.print("Оклад (Salary): ");
                     double salary = Double.parseDouble(scanner.nextLine().trim());
                     newUser = UserFactory.createAdmin(id, firstName, lastName, email, login, password, salary);
                 }
                 default -> {
-                    System.out.println("❌ Ошибка: Выбрана несуществующая роль.");
+                    System.out.println("Неверная роль.");
                     return;
                 }
             }
 
             if (newUser != null) {
                 university.addUser(newUser);
-                System.out.printf("✅ Успех! Пользователь %s (%s) добавлен в базу данных университета.%n",
+                System.out.printf("Пользователь %s (%s) добавлен.%n",
                         newUser.getFullName(), newUser.getClass().getSimpleName());
             }
         } catch (NumberFormatException e) {
-            System.out.println("❌ Ошибка создания: Курс и оклад должны быть числовыми значениями!");
+            System.out.println("Ошибка: введите числовое значение.");
         } catch (Exception e) {
-            System.out.println("❌ Критическая ошибка при работе Фабрики: " + e.getMessage());
+            System.out.println("Ошибка: " + e.getMessage());
         }
     }
 }

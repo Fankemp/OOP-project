@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import university.exceptions.*;
 import university.academic.*;
+import university.enums.CourseType;
 
 /**
  * Класс, представляющий студента университета.
@@ -39,6 +40,14 @@ public class Student extends User {
     }
 
     public void registerCourse(Course course) throws MaxCreditsException, CourseFailLimitException {
+        CourseType effectiveType = course.getType();
+        if ("SITE".equalsIgnoreCase(this.major) && course.getTargetMajor() != null
+                && course.getTargetMajor().equalsIgnoreCase("OilGas")) {
+            effectiveType = CourseType.FREE_ELECTIVE;
+            System.out.println("[Info] Курс '" + course.getName() +
+                    "' засчитан как FREE_ELECTIVE для студента SITE.");
+        }
+
         if (this.totalCredits + course.getCredits() > MAX_CREDITS_LIMIT) {
             STUDENT_LOGGER.log(Level.WARNING, "MaxCreditsException for student {0}: Attempted {1} credits",
                     new Object[]{getId(), (totalCredits + course.getCredits())});
@@ -52,6 +61,7 @@ public class Student extends User {
         if (!courses.contains(course)) {
             courses.add(course);
             totalCredits += course.getCredits();
+            course.enrollStudent(this);
             STUDENT_LOGGER.log(Level.INFO, "Course {0} registered for student {1}", new Object[]{course.getName(), getId()});
         }
     }
@@ -141,8 +151,8 @@ public class Student extends User {
 
     public int getYearOfStudy() { return yearOfStudy; }
     public void setYearOfStudy(int yearOfStudy) { this.yearOfStudy = yearOfStudy; }
-
-    public List<Course> getCourses() { return Collections.unmodifiableList(courses); }
+    
+    List<Course> getCoursesInternal() { return courses; }
     public int getTotalCredits() { return totalCredits; }
 
     public Map<Course, Mark> getMarks() { return Collections.unmodifiableMap(marks); }

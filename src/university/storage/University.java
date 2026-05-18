@@ -8,6 +8,7 @@ import university.academic.Course;
 import university.communications.News;
 import university.communications.Request;
 import university.users.StudentOrganization;
+import university.communications.OfficialMessage;
 
 import java.io.*;
 import java.util.*;
@@ -27,7 +28,7 @@ public class University implements Serializable {
     private final List<Request> requests = new ArrayList<>();
     private final List<StudentOrganization> organizations = new ArrayList<>();
     private final List<university.research.journal.UniversityJournal> journals = new ArrayList<>();
-   
+    private final List<OfficialMessage> officialMessages = new ArrayList<>();
     
     // Приватный конструктор исключает создание через new извне
     private University() {}
@@ -119,6 +120,14 @@ public class University implements Serializable {
 
     public List<university.research.journal.UniversityJournal> getJournals() {
         return Collections.unmodifiableList(journals);
+    }
+    
+    public synchronized void addOfficialMessage(OfficialMessage msg) {
+        officialMessages.add(Objects.requireNonNull(msg));
+    }
+
+    public List<OfficialMessage> getOfficialMessages() {
+        return Collections.unmodifiableList(officialMessages);
     }
     
     public synchronized boolean removeUser(String userId) {

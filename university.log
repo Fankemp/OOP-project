@@ -66,3 +66,15 @@ May 18, 2026 12:15:34 AM university.users.User <init>
 INFO: User created: Amir Nurlan (ID: S001)
 May 18, 2026 12:15:34 AM university.users.User <init>
 INFO: User created: Marat Omarov (ID: TS001)
+May 18, 2026 8:03:25 PM university.users.Student registerCourse
+INFO: Course Object-Oriented Programming registered for student S001
+May 18, 2026 8:05:02 PM university.users.User switchLanguage
+INFO: User S001 switched language to KZ
+May 18, 2026 8:26:07 PM university.users.User <init>
+INFO: User created: Alice Sip (ID: B031833)
+May 18, 2026 8:27:46 PM university.users.Teacher putMark
+WARNING: Teacher Bekova cannot assign mark: they do not teach course Calculus
+May 18, 2026 8:31:09 PM university.users.Student receiveMark
+WARNING: Student B031833 is not registered for course Calculus
+May 18, 2026 8:31:09 PM university.users.Teacher putMark
+INFO: Teacher Bekova assigned mark to student B031833

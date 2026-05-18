@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class ResearchPaper implements Comparable<ResearchPaper> {
-
+public class ResearchPaper implements Comparable<ResearchPaper>, java.io.Serializable {
+    private static final long serialVersionUID = 2026L;
     private String title;
     private List<String> authors;
     private String journal;

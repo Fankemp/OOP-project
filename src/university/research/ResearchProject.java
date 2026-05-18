@@ -6,7 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class ResearchProject {
+public class ResearchProject implements java.io.Serializable {
+    private static final long serialVersionUID = 2026L;
     private final String projectId;
     private String topic;
     private final List<ResearchPaper> publishedPapers;

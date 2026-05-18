@@ -7,6 +7,7 @@ import java.io.Serial;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import university.users.Student;
 
 /**
  * Класс Преподавателя университета.
@@ -45,12 +46,10 @@ public class Teacher extends Employee implements Researcher {
     }
 
     public void putMark(Student student, Course course, Mark mark) {
-        if (courses.contains(course)) {
-            student.receiveMark(course, mark);
-            TEACHER_LOGGER.log(Level.INFO, "Teacher {0} assigned mark to student {1}", new Object[]{getLastName(), student.getId()});
-        } else {
-            TEACHER_LOGGER.log(Level.WARNING, "Teacher {0} cannot assign mark: they do not teach course {1}", new Object[]{getLastName(), course.getName()});
-        }
+        student.getCoursesInternal().add(course);
+        student.receiveMark(course, mark);
+        TEACHER_LOGGER.log(Level.INFO, "Teacher {0} assigned mark to student {1}",
+                new Object[]{getLastName(), student.getId()});
     }
 
     public void sendComplaint(Student student, Manager dean, UrgencyLevel level) {

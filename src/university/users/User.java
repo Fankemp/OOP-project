@@ -1,6 +1,6 @@
-package university.users; // ИСПРАВЛЕНО: пакет теперь совпадает со всем проектом
+package university.users; 
 
-import java.io.Serializable; // ИСПРАВЛЕНО: импорт для сохранения данных
+import java.io.Serializable; 
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.Objects;
@@ -73,7 +73,6 @@ public abstract class User implements Serializable {
         return firstName + " " + lastName;
     }
 
-    // Геттеры и сеттеры
     public String getId() { return id; }
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }

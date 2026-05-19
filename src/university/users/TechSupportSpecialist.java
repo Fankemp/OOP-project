@@ -75,7 +75,6 @@ public class TechSupportSpecialist extends Employee {
         if (request == null) throw new IllegalArgumentException("Request cannot be null.");
     }
 
-    /** Returns a defensive copy of the assigned-requests list. */
     public List<Request> getAssignedRequests() {
         return new ArrayList<>(assignedRequests);
     }

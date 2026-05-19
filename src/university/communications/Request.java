@@ -44,7 +44,6 @@ public class Request implements Serializable {
         this.status = newStatus;
     }
 
-    // --- Логика стейт-машины переключения статусов ---
     public void view() {
         if (status == RequestStatus.NEW) {
             status = RequestStatus.VIEWED;

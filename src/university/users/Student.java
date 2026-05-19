@@ -8,10 +8,7 @@ import university.exceptions.*;
 import university.academic.*;
 import university.enums.CourseType;
 
-/**
- * Класс, представляющий студента университета.
- * Отрефакторен согласно принципам DRY и Low Coupling.
- */
+
 public class Student extends User {
     @Serial
     private static final long serialVersionUID = 2026L;
@@ -123,7 +120,6 @@ public class Student extends User {
             System.out.println("No marks available yet.");
             return;
         }
-        // ИСПРАВЛЕНО (DRY): Переиспользовали метод mark.getLetterGrade() и mark.getTotal()
         marks.forEach((course, mark) ->
                 System.out.printf("%s: %.1f (%s)%n", course.getName(), mark.getTotal(), mark.getLetterGrade()));
     }
@@ -142,7 +138,6 @@ public class Student extends User {
                 new Object[]{getId(), teacher.getLastName(), rating});
     }
 
-    // --- Геттеры и Сеттеры (С защитой от внешней модификации коллекций) ---
     public double getGpa() { return gpa; }
     public void setGpa(double gpa) { this.gpa = gpa; }
 
@@ -158,7 +153,6 @@ public class Student extends User {
     public Map<Course, Mark> getMarks() { return Collections.unmodifiableMap(marks); }
     public Map<Course, Integer> getFailCount() { return Collections.unmodifiableMap(failCount); }
 
-    // --- Системные контракты равенства объектов ---
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

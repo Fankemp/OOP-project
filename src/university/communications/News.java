@@ -24,7 +24,7 @@ public class News implements Serializable, Comparable<News> {
 
     @Override
     public int compareTo(News other) {
-        // Просто сортируем по дате: сначала самые свежие новости
+        // просто сортируем по дате сначала самые свежие новости
         return other.createdAt.compareTo(this.createdAt);
     }
 

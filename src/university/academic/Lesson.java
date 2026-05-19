@@ -5,10 +5,6 @@ import java.io.Serializable;
 import java.io.Serial;
 import java.util.Objects;
 
-/**
- * Класс, описывающий академическое занятие в университете.
- * Демонстрирует принципы инкапсуляции данных.
- */
 public class Lesson implements Serializable {
     @Serial
     private static final long serialVersionUID = 2026L;

@@ -21,7 +21,7 @@ public class Main {
             initSystemData();
         }
 
-        // Запуск главного консольного интерфейса
+
         ConsoleInterface.start();
     }
 

@@ -30,13 +30,7 @@ public class Admin extends Employee {
         System.out.printf("[Admin %s] Added user: %s%n", getFullName(), user);
     }
 
-    /**
-     * Removes a user by their unique ID.
-     *
-     * @param userId the ID of the user to remove
-     * @param registry the central user store
-     * @return true if the user was found and removed, false otherwise
-     */
+    
     public boolean removeUser(String userId, UserRegistry registry) {
         boolean removed = registry.removeById(userId);
         if (removed) {
@@ -47,10 +41,7 @@ public class Admin extends Employee {
         return removed;
     }
 
-    /**
-     * Replaces an existing user record with updated data.
-     * Matching is done by user ID.
-     */
+    
     public void updateUser(User updatedUser, UserRegistry registry) {
         if (updatedUser == null) throw new IllegalArgumentException("Updated user cannot be null.");
         registry.update(updatedUser);

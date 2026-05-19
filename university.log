@@ -214,3 +214,7 @@ INFO: User created: Marat Omarov (ID: TS001)
 INFO: User created: Admin Root (ID: A001)
 мая 19, 2026 3:36:26 PM university.users.User <init>
 INFO: User created: Sarvan Musaev (ID: ST123)
+May 19, 2026 6:03:12 PM university.users.User <init>
+INFO: User created: Admin Root (ID: A001)
+May 19, 2026 6:04:02 PM university.users.User <init>
+INFO: User created: alice sip (ID: S123)

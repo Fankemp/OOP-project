@@ -7,10 +7,8 @@ import java.util.ArrayList;
 
 public interface Researcher {
 
-    // 1. Это единственный метод, который ТРЕБУЕТСЯ реализовать в Teacher и GraduateStudent
     ResearchProfile getResearchProfile();
 
-    // 2. Все остальные методы реализуем по умолчанию (default) прямо тут!
     default void addPaper(ResearchPaper paper) {
         if (getResearchProfile() != null) {
             getResearchProfile().addPaper(paper);

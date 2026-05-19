@@ -81,15 +81,11 @@ public class Manager extends Employee {
         }
     }
 
-    /** Convenience overload – adds a news item. */
     public void manageNews(News news, List<News> newsFeed) {
         manageNews(news, newsFeed, NewsAction.ADD);
     }
 
-    /**
-     * Prints students sorted by the provided comparator.
-     * Examples: sorted by GPA descending, alphabetically by last name, etc.
-     */
+    
     public void viewStudentsSorted(List<Student> students, Comparator<Student> comparator) {
         System.out.printf("[Manager %s] === Student List ===%n", getFullName());
         students.stream()
@@ -98,17 +94,14 @@ public class Manager extends Employee {
                         s.getFullName(), s.getGpa(), s.getTotalCredits()));
     }
 
-    /** Prints students sorted by GPA descending (convenience shortcut). */
     public void viewStudentsByGpa(List<Student> students) {
         viewStudentsSorted(students, Comparator.comparingDouble(Student::getGpa).reversed());
     }
 
-    /** Prints students sorted alphabetically by last name. */
     public void viewStudentsAlphabetically(List<Student> students) {
         viewStudentsSorted(students, Comparator.comparing(User::getLastName));
     }
 
-    /** Prints teachers sorted by the provided comparator. */
     public void viewTeachersSorted(List<Teacher> teachers, Comparator<Teacher> comparator) {
         System.out.printf("[Manager %s] === Teacher List ===%n", getFullName());
         teachers.stream()
@@ -117,10 +110,7 @@ public class Manager extends Employee {
                         t.getFullName(), t.getPosition(), t.getRating()));
     }
 
-    /**
-     * Displays all pending employee requests.
-     * Per requirements, requests must be signed by dean/rector before a manager acts on them.
-     */
+    
     public void viewRequests(List<Request> requests) {
         System.out.printf("[Manager %s] === Incoming Requests ===%n", getFullName());
         if (requests.isEmpty()) {

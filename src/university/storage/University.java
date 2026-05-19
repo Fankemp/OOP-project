@@ -21,7 +21,6 @@ public class University implements Serializable {
     private static final String DATA_FILE = "university_data.ser";
     private static final University INSTANCE = new University();
 
-    // Четыре утвержденные базовые коллекции системы
     private final List<User> users = new ArrayList<>();
     private final List<Course> courses = new ArrayList<>();
     private final List<News> news = new ArrayList<>();
@@ -30,7 +29,6 @@ public class University implements Serializable {
     private final List<university.research.journal.UniversityJournal> journals = new ArrayList<>();
     private final List<OfficialMessage> officialMessages = new ArrayList<>();
     
-    // Приватный конструктор исключает создание через new извне
     private University() {}
 
     public static University getInstance() {
@@ -52,7 +50,6 @@ public class University implements Serializable {
 
         student.registerCourse(course);
 
-        // 2. Если исключение не вылетело, добавляем студента в ведомость курса
         course.enrollStudent(student);
 
 
@@ -151,13 +148,12 @@ public class University implements Serializable {
     public java.util.List<university.communications.Message> getMessagesForUser(university.users.User user) {
         if (user == null) return java.util.Collections.emptyList();
 
-        // Фильтруем все сообщения, где текущий пользователь является получателем
+        // фильтруем все сообщения, где текущий пользователь является получателем
         return this.allMessages.stream()
                 .filter(m -> m.getReceiver().equals(user))
                 .collect(java.util.stream.Collectors.toList());
     }
 
-    // Защита от прямого изменения списков из других пакетов
     public List<User> getUsers() { return Collections.unmodifiableList(users); }
     public List<Course> getCourses() { return Collections.unmodifiableList(courses); }
     public List<News> getNews() { return Collections.unmodifiableList(news); }
@@ -175,9 +171,9 @@ public class University implements Serializable {
 
     public List<university.users.Student> getStudentsSortedByGpa() {
         return users.stream()
-                .filter(user -> user instanceof university.users.Student) // Фильтруем только студентов
+                .filter(user -> user instanceof university.users.Student) 
                 .map(user -> (university.users.Student) user)
-                // Сортируем по GPA в обратном порядке (от большего к меньшему)
+                // сортируем по GPA в обратном порядке 
                 .sorted((s1, s2) -> Double.compare(s2.getTranscript().calculateGpa(), s1.getTranscript().calculateGpa()))
                 .collect(java.util.stream.Collectors.toList());
     }

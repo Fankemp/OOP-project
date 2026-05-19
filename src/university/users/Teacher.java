@@ -9,10 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import university.users.Student;
 
-/**
- * Класс Преподавателя университета.
- * ИСПРАВЛЕНО: Научная деятельность полностью делегирована в ResearchProfile через default-методы.
- */
+
 public class Teacher extends Employee implements Researcher {
     @Serial
     private static final long serialVersionUID = 2026L;
@@ -25,7 +22,6 @@ public class Teacher extends Employee implements Researcher {
     private int numberOfRatings;
     private double totalRatingSum;
 
-    // ИСПРАВЛЕНО: Вместо кучи списков статей и проектов внедряем один чистый профиль-делегат
     private final ResearchProfile researchProfile;
 
     public Teacher(String id, String firstName, String lastName, String email, String login, String password,
@@ -115,7 +111,6 @@ public class Teacher extends Employee implements Researcher {
 
     @Override
     public String toString() {
-        // ИСПРАВЛЕНО: Методы getPapers() и calculateHIndex() вызываются напрямую из интерфейса Researcher
         return String.format("Teacher{id='%s', name='%s', position=%s, rating=%.2f, totalPapers=%d, hIndex=%d}",
                 getId(), getFullName(), position, rating, getPapers().size(), calculateHIndex());
     }

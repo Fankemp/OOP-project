@@ -34,7 +34,6 @@ public class GraduateStudent extends Student implements Researcher {
         this.degreeType = degreeType;
         this.diplomaPapers = new ArrayList<>();
 
-        // ИСПРАВЛЕНО: Инициализируем делегат
         this.researchProfile = new ResearchProfile(id);
     }
 
@@ -64,7 +63,6 @@ public class GraduateStudent extends Student implements Researcher {
     public void addDiplomaPaper(ResearchPaper paper) {
         if (paper != null && !diplomaPapers.contains(paper)) {
             diplomaPapers.add(paper);
-            // Автоматически отправляем статью в наш общий профиль исследователя
             addPaper(paper);
         }
     }

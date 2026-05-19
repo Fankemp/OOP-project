@@ -9,10 +9,6 @@ import java.io.Serializable;
 import java.io.Serial;
 import java.util.*;
 
-/**
- * Класс учебного курса университета.
- * Синхронизирован с логикой управления менеджера (Manager).
- */
 public class Course implements Serializable, Comparable<Course> {
     @Serial
     private static final long serialVersionUID = 2026L;
@@ -26,7 +22,7 @@ public class Course implements Serializable, Comparable<Course> {
     private final List<Student> students = new ArrayList<>();
     private final List<Lesson> lessons = new ArrayList<>();
 
-    // ИСПРАВЛЕНО: Добавлены поля для управления регистрацией, которые требует Manager
+    
     private String targetMajor;
     private int targetYear;
     private boolean openForRegistration = false;
@@ -39,7 +35,6 @@ public class Course implements Serializable, Comparable<Course> {
         this.credits = credits;
     }
 
-    // ИСПРАВЛЕНО: Перегруженный метод для совместимости с вызовом manager.assignTeacher(teacher, course)
     public void addTeacher(Teacher teacher) {
         addTeacher(teacher, LessonType.LECTURE);
     }
@@ -64,7 +59,7 @@ public class Course implements Serializable, Comparable<Course> {
         this.lessons.add(Objects.requireNonNull(lesson, "Lesson cannot be null"));
     }
 
-    // Геттеры и сеттеры
+   
     public String getCode() { return code; }
     public String getName() { return name; }
     public int getCredits() { return credits; }
@@ -74,7 +69,7 @@ public class Course implements Serializable, Comparable<Course> {
     public List<Student> getStudents() { return Collections.unmodifiableList(students); }
     public List<Lesson> getLessons() { return Collections.unmodifiableList(lessons); }
 
-    // ИСПРАВЛЕНО: Геттеры и сеттеры для интеграции с Manager
+    
     public String getTargetMajor() { return targetMajor; }
     public void setTargetMajor(String targetMajor) { this.targetMajor = targetMajor; }
 

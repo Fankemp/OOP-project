@@ -59,6 +59,12 @@ public abstract class User implements Serializable {
     public void switchLanguage(String newLanguage) {
         if (newLanguage != null && !newLanguage.trim().isEmpty()) {
             this.language = newLanguage.toUpperCase();
+            university.enums.Language lang = switch (this.language) {
+                case "KZ" -> university.enums.Language.KZ;
+                case "ENG", "EN" -> university.enums.Language.ENG;
+                default -> university.enums.Language.RU;
+            };
+            university.view.Lang.set(lang);
             LOGGER.log(Level.INFO, "User {0} switched language to {1}", new Object[]{id, this.language});
         }
     }

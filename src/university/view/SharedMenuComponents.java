@@ -8,155 +8,129 @@ import university.research.ResearchManager;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Scanner;
+import university.enums.Language;
 
-/**
- * Класс сквозных переиспользуемых компонентов интерфейса (Shared Components).
- * Устраняет дублирование кода (DRY) для общих процессов: почты, локализации и науки.
- */
 public class SharedMenuComponents {
     private static final University university = University.getInstance();
 
-    /**
-     * Универсальный текстовый интерфейс для отправки личного сообщения.
-     */
     public static void handleSendMessageMenu(User sender, Scanner scanner) {
-        System.out.print("\nВведите логин получателя: ");
+        System.out.print(Lang.t("\nЛогин получателя: ", "\nReceiver login: ", "\nАлушының логині: "));
         String receiverLogin = scanner.nextLine().trim();
-
         User receiver = university.getUsers().stream()
                 .filter(u -> u.getLogin().equalsIgnoreCase(receiverLogin))
                 .findFirst().orElse(null);
-
         if (receiver == null) {
-            System.out.println("❌ Ошибка: Пользователь с таким логином не найден.");
+            System.out.println(Lang.t("❌ Пользователь не найден.", "❌ User not found.", "❌ Пайдаланушы табылмады."));
             return;
         }
-
-        System.out.print("Введите текст сообщения: ");
+        System.out.print(Lang.t("Текст: ", "Text: ", "Мәтін: "));
         String text = scanner.nextLine().trim();
-
         if (text.isEmpty()) {
-            System.out.println("⚠️ Действие отменено: нельзя отправить пустое сообщение.");
+            System.out.println(Lang.t("⚠️ Пустое сообщение.", "⚠️ Empty message.", "⚠️ Бос хабар."));
             return;
         }
-
         university.sendMessage(sender, receiver, text);
-        System.out.println("✅ Сообщение успешно отправлено получателю.");
+        System.out.println(Lang.t("✅ Отправлено.", "✅ Sent.", "✅ Жіберілді."));
     }
 
-    /**
-     * Универсальный интерфейс вычитки писем из почтового ящика (Mailbox).
-     */
     public static void handleViewMailboxMenu(User user, Scanner scanner) {
-        System.out.println("\n=== Входящие сообщения ===");
+        System.out.println("\n=== " + Lang.t("ВХОДЯЩИЕ", "INBOX", "КІРІс ХАБАРЛАР") + " ===");
         var myMessages = university.getMessagesForUser(user);
         if (myMessages.isEmpty()) {
-            System.out.println("Ваш электронный ящик пуст.");
+            System.out.println(Lang.t("Ящик пуст.", "Inbox is empty.", "Пошта жәшігі бос."));
             return;
         }
-
         for (int i = 0; i < myMessages.size(); i++) {
             var m = myMessages.get(i);
-            String status = m.isRead() ? "[Прочитано]" : "[📌 НОВОЕ]";
-            System.out.printf("%d. %s от %s (%s)%n", i + 1, status, m.getSender().getFullName(), m.getSentAt());
+            String status = m.isRead()
+                    ? Lang.t("[Прочитано]", "[Read]", "[Оқылды]")
+                    : Lang.t("[НОВОЕ]", "[NEW]", "[ЖАҢА]");
+            System.out.printf("%d. %s %s %s (%s)%n", i + 1, status,
+                    Lang.t("от", "from", "жіберген"),
+                    m.getSender().getFullName(), m.getSentAt());
         }
-
-        System.out.print("Введите номер сообщения для чтения (или Enter для отмены): ");
+        System.out.print(Lang.t("Номер (Enter для отмены): ", "Number (Enter to cancel): ", "Нөмір (бас тарту үшін Enter): "));
         String input = scanner.nextLine().trim();
         if (input.isEmpty()) return;
-
         try {
             int index = Integer.parseInt(input) - 1;
             if (index >= 0 && index < myMessages.size()) {
-                var selectedMsg = myMessages.get(index);
-                selectedMsg.markAsRead(); // Смена флага на чтение
-
-                System.out.printf("%n--- Текст письма ---%nОт: %s%nТекст: %s%n--------------------%n",
-                        selectedMsg.getSender().getFullName(), selectedMsg.getText());
+                var msg = myMessages.get(index);
+                msg.markAsRead();
+                System.out.printf("%n%s %s%n%s %s%n%s %s%n",
+                        Lang.t("От:", "From:", "Жіберген:"), msg.getSender().getFullName(),
+                        Lang.t("Дата:", "Date:", "Күні:"), msg.getSentAt(),
+                        Lang.t("Текст:", "Text:", "Мәтін:"), msg.getText());
             } else {
-                System.out.println("❌ Ошибка: Некорректный номер сообщения.");
+                System.out.println(Lang.t("❌ Неверный номер.", "❌ Invalid number.", "❌ Жарамсыз нөмір."));
             }
         } catch (Exception e) {
-            System.out.println("❌ Ошибка: Неверный формат ввода.");
+            System.out.println(Lang.t("⚠️ Отменено.", "⚠️ Cancelled.", "⚠️ Бас тартылды."));
         }
     }
 
-    /**
-     * Меню динамического переключения языкового пакета системы.
-     */
     public static void handleSwitchLanguage(Scanner scanner) {
-        System.out.println("\n--- Настройка локализации / Switch Language ---");
-        System.out.println("1. English (EN) | 2. Казахский (KZ) | 3. Русский (RU)");
-        System.out.print("Ваш выбор: ");
-        String choice = scanner.nextLine().trim();
-
-        String lang = choice.equals("2") ? "KZ" : choice.equals("3") ? "RU" : "EN";
-        System.out.println("Language successfully switched to: " + lang);
+        System.out.println("\n--- " + Lang.t("Смена языка", "Switch Language", "Тілді ауыстыру") + " ---");
+        System.out.println("1. Русский (RU)");
+        System.out.println("2. English (EN)");
+        System.out.println("3. Қазақша (KZ)");
+        System.out.print(Lang.t("Ваш выбор: ", "Your choice: ", "Таңдауыңыз: "));
+        Language lang = switch (scanner.nextLine().trim()) {
+        case "2" -> Language.ENG;
+        case "3" -> Language.KZ;
+        default  -> Language.RU;
+    };
+        Lang.set(lang);
+        System.out.println(Lang.t("✅ Язык изменён.", "✅ Language changed.", "✅ Тіл өзгертілді."));
     }
 
-    /**
-     * Общая подсистема вызовов для академических исследователей (Researcher).
-     * Автоматически принимает любого Researcher (и Teacher, и GraduateStudent).
-     */
     public static void handleResearcherMenu(Researcher researcher, Scanner scanner) {
-        System.out.println("\n--- [Меню Исследователя KBTU] ---");
-        System.out.println("1. Мои научные статьи");
-        System.out.println("2. Опубликовать новую статью (Add Paper)");
-        System.out.println("3. Рассчитать индекс Хирша (h-index)");
-        System.out.println("4. Вернуться назад");
-        System.out.print("Выберите действие: ");
+        System.out.println("\n--- [" + Lang.t("Меню Исследователя", "Research Menu", "Зерттеуші мәзірі") + "] ---");
+        System.out.println("1. " + Lang.t("Мои статьи", "My Papers", "Менің мақалаларым"));
+        System.out.println("2. " + Lang.t("Опубликовать статью", "Add Paper", "Мақала жариялау"));
+        System.out.println("3. " + Lang.t("h-index", "h-index", "h-индекс"));
+        System.out.println("4. " + Lang.t("Назад", "Back", "Артқа"));
+        System.out.print(Lang.t("Выберите действие: ", "Choose action: ", "Әрекетті таңдаңыз: "));
 
         switch (scanner.nextLine().trim()) {
             case "1" -> {
                 if (researcher.getPapers().isEmpty()) {
-                    System.out.println("В вашем научном профиле пока нет зарегистрированных статей.");
+                    System.out.println(Lang.t("Статей нет.", "No papers.", "Мақалалар жоқ."));
                     return;
                 }
                 researcher.getPapers().forEach(System.out::println);
             }
             case "2" -> {
                 try {
-                    System.out.print("Title (Название): ");
+                    System.out.print(Lang.t("Название: ", "Title: ", "Атауы: "));
                     String title = scanner.nextLine().trim();
-                    System.out.print("Journal (Издательство): ");
+                    System.out.print(Lang.t("Журнал: ", "Journal: ", "Журнал: "));
                     String journal = scanner.nextLine().trim();
-                    System.out.print("Citations (Цитирования): ");
+                    System.out.print(Lang.t("Цитирования: ", "Citations: ", "Цитаталар: "));
                     int citations = Integer.parseInt(scanner.nextLine().trim());
-
-                    // Формируем объект статьи и привязываем его к репозиториям
                     var paper = new university.research.ResearchPaper(
-                            title, Arrays.asList("Author"), journal, 1, 10, LocalDate.now(), "DOI-123", citations);
-
+                            title, Arrays.asList("Author"), journal, 1, 10,
+                            LocalDate.now(), "DOI-123", citations);
                     researcher.addPaper(paper);
                     ResearchManager.getInstance().registerResearcher(researcher);
-                    System.out.println("✅ Статья добавлена. Научный авто-анонс опубликован в ленте новостей.");
+                    System.out.println(Lang.t("✅ Статья добавлена.", "✅ Paper added.", "✅ Мақала қосылды."));
                 } catch (Exception e) {
-                    System.out.println("❌ Ошибка ввода: некорректный формат числовых данных.");
+                    System.out.println(Lang.t("❌ Ошибка ввода.", "❌ Input error.", "❌ Енгізу қатесі."));
                 }
             }
-            case "3" -> {
-                System.out.println("Ваш индекс Хирша (h-index): " + researcher.calculateHIndex());
-            }
-            default -> System.out.println("Возврат в основное кабинет-меню.");
+            case "3" -> System.out.println(Lang.t("Ваш h-index: ", "Your h-index: ", "Сіздің h-индексіңіз: ") + researcher.calculateHIndex());
+            default -> System.out.println(Lang.t("Назад.", "Back.", "Артқа."));
         }
     }
 
-    /**
-     * Универсальный метод просмотра новостной ленты вуза для всех ролей.
-     * Автоматически сортирует новости по приоритету (Comparable).
-     */
     public static void handleViewNews() {
-        System.out.println("\n=== ЛЕНТА НОВОСТЕЙ KBTU ===");
+        System.out.println("\n=== " + Lang.t("ЛЕНТА НОВОСТЕЙ KBTU", "KBTU NEWS FEED", "KBTU ЖАҢАЛЫҚТАР ТАСПАСЫ") + " ===");
         java.util.List<university.communications.News> newsList = new java.util.ArrayList<>(university.getNews());
-
         if (newsList.isEmpty()) {
-            System.out.println("Новостная лента университета пока пуста.");
+            System.out.println(Lang.t("Новостей нет.", "No news.", "Жаңалықтар жоқ."));
             return;
         }
-
-        // Сортировка (благодаря реализованному Comparable важные и научные новости будут выше)
         java.util.Collections.sort(newsList);
-
         System.out.println("-------------------------------------------------");
         newsList.forEach(System.out::println);
         System.out.println("-------------------------------------------------");

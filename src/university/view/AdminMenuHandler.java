@@ -20,15 +20,16 @@ public class AdminMenuHandler {
 
     public static boolean show(Admin admin, Scanner scanner) {
         System.out.println("\n========================================");
-        System.out.println("       [Панель Администратора KBTU]     ");
+        System.out.println("   " + Lang.t("Панель Администратора KBTU", "Admin Panel KBTU", "KBTU Әкімші панелі"));
         System.out.println("========================================");
-        System.out.println("1. Добавить нового пользователя (Add User)");
-        System.out.println("2. Удалить пользователя из системы (Remove User)");
-        System.out.println("3. Изменить данные учетной записи (Update User)");
-        System.out.println("4. Просмотреть системный журнал действий (See Logs)");
-        System.out.println("5. Выйти из учетной записи (Logout)");
-        System.out.println("6. Отправить заявку в техподдержку (Send Tech Request)");
-        System.out.print("Выберите действие: ");
+        System.out.println("1. " + Lang.t("Добавить пользователя", "Add User", "Пайдаланушы қосу"));
+        System.out.println("2. " + Lang.t("Удалить пользователя", "Remove User", "Пайдаланушыны жою"));
+        System.out.println("3. " + Lang.t("Изменить данные", "Update User", "Деректерді өзгерту"));
+        System.out.println("4. " + Lang.t("Просмотреть логи", "See Logs", "Журналды көру"));
+        System.out.println("5. " + Lang.t("Выйти", "Logout", "Шығу"));
+        System.out.println("6. " + Lang.t("Заявка в техподдержку", "Send Tech Request", "Техқолдауға өтініш"));
+        System.out.println("7. " + Lang.t("Сменить язык", "Switch Language", "Тілді ауыстыру"));
+        System.out.print(Lang.t("Выберите действие: ", "Choose action: ", "Әрекетті таңдаңыз: "));
 
         String choice = scanner.nextLine().trim();
         switch (choice) {
@@ -37,47 +38,44 @@ public class AdminMenuHandler {
             case "3" -> handleUpdateUser(scanner);
             case "4" -> printLogsFromFile();
             case "5" -> {
-                System.out.println("Сессия администратора завершена.");
+                System.out.println(Lang.t("Сессия завершена.", "Session ended.", "Сессия аяқталды."));
                 return true;
             }
             case "6" -> TechSupportMenuHandler.handleCreateRequest(admin, scanner);
-            default -> System.out.println("Ошибка: Неверный пункт меню. Попробуйте еще раз.");
+            case "7" -> SharedMenuComponents.handleSwitchLanguage(scanner);
+            default -> System.out.println(Lang.t("Ошибка: Неверный пункт меню.", "Error: Invalid choice.", "Қате: Жарамсыз таңдау."));
         }
         return false;
     }
 
-    /**
-     * Интерактивное создание учетной записи пользователя через Фабрику
-     */
     private static void handleCreateUserMenu(Scanner scanner) {
-        System.out.println("\n--- Создание нового пользователя ---");
-        System.out.println("1. Студент (Student)");
-        System.out.println("2. Магистрант / PhD Докторант (Graduate Student)");
-        System.out.println("3. Преподаватель (Teacher)");
-        System.out.println("4. Академический Менеджер (Manager)");
-        System.out.println("5. Специалист техподдержки (Tech Support)");
-        System.out.println("6. Системный Администратор (Admin)");
-        System.out.print("Ваш выбор (1-6): ");
+        System.out.println("\n--- " + Lang.t("Создание пользователя", "Create User", "Пайдаланушы жасау") + " ---");
+        System.out.println("1. " + Lang.t("Студент", "Student", "Студент"));
+        System.out.println("2. " + Lang.t("Магистрант/PhD", "Graduate Student", "Магистрант/PhD"));
+        System.out.println("3. " + Lang.t("Преподаватель", "Teacher", "Оқытушы"));
+        System.out.println("4. " + Lang.t("Менеджер", "Manager", "Менеджер"));
+        System.out.println("5. " + Lang.t("Техподдержка", "Tech Support", "Техқолдау"));
+        System.out.println("6. " + Lang.t("Администратор", "Admin", "Әкімші"));
+        System.out.print(Lang.t("Ваш выбор (1-6): ", "Your choice (1-6): ", "Таңдауыңыз (1-6): "));
         String roleChoice = scanner.nextLine().trim();
 
-        System.out.print("Введите уникальный ID (например, S124, T002): ");
+        System.out.print(Lang.t("ID: ", "ID: ", "ID: "));
         String id = scanner.nextLine().trim();
-        System.out.print("Введите Имя: ");
+        System.out.print(Lang.t("Имя: ", "First name: ", "Аты: "));
         String firstName = scanner.nextLine().trim();
-        System.out.print("Введите Фамилию: ");
+        System.out.print(Lang.t("Фамилия: ", "Last name: ", "Тегі: "));
         String lastName = scanner.nextLine().trim();
-        System.out.print("Введите электронную почту: ");
+        System.out.print(Lang.t("Email: ", "Email: ", "Email: "));
         String email = scanner.nextLine().trim();
-        System.out.print("Придумайте уникальный Логин: ");
+        System.out.print(Lang.t("Логин: ", "Login: ", "Логин: "));
         String login = scanner.nextLine().trim();
-        System.out.print("Придумайте Пароль: ");
+        System.out.print(Lang.t("Пароль: ", "Password: ", "Құпия сөз: "));
         String password = scanner.nextLine().trim();
 
-        // Проверка логина на дубликаты
         boolean loginExists = university.getUsers().stream()
                 .anyMatch(u -> u.getLogin().equalsIgnoreCase(login));
         if (loginExists) {
-            System.out.println("❌ Ошибка: логин '" + login + "' уже используется в системе!");
+            System.out.println(Lang.t("Ошибка: логин уже занят!", "Error: login already taken!", "Қате: логин бос емес!"));
             return;
         }
 
@@ -85,29 +83,31 @@ public class AdminMenuHandler {
         try {
             switch (roleChoice) {
                 case "1" -> {
-                    System.out.print("Специальность (Major, например, SITE): ");
+                    System.out.print(Lang.t("Специальность: ", "Major: ", "Мамандық: "));
                     String major = scanner.nextLine().trim();
-                    System.out.print("Курс обучения (1-4): ");
+                    System.out.print(Lang.t("Курс (1-4): ", "Year (1-4): ", "Курс (1-4): "));
                     int year = Integer.parseInt(scanner.nextLine().trim());
                     newUser = UserFactory.createStudent(id, firstName, lastName, email, login, password, major, year);
                 }
                 case "2" -> {
-                    System.out.print("Специальность (Major): ");
+                    System.out.print(Lang.t("Специальность: ", "Major: ", "Мамандық: "));
                     String major = scanner.nextLine().trim();
-                    System.out.print("Курс (1-2): ");
+                    System.out.print(Lang.t("Курс (1-2): ", "Year (1-2): ", "Курс (1-2): "));
                     int year = Integer.parseInt(scanner.nextLine().trim());
-                    System.out.println("Ученая степень: 1. MASTER | 2. PHD");
-                    System.out.print("Ваш выбор: ");
+                    System.out.println(Lang.t("Степень: 1. MASTER | 2. PHD", "Degree: 1. MASTER | 2. PHD", "Дәреже: 1. MASTER | 2. PHD"));
+                    System.out.print(Lang.t("Ваш выбор: ", "Your choice: ", "Таңдауыңыз: "));
                     DegreeType degree = scanner.nextLine().trim().equals("2") ? DegreeType.PHD : DegreeType.MASTER;
                     newUser = new GraduateStudent(id, firstName, lastName, email, login, password, major, year, degree);
                 }
                 case "3" -> {
-                    System.out.print("Оклад (Salary): ");
+                    System.out.print(Lang.t("Оклад: ", "Salary: ", "Жалақы: "));
                     double salary = Double.parseDouble(scanner.nextLine().trim());
-                    System.out.print("Кафедра (Department): ");
+                    System.out.print(Lang.t("Кафедра: ", "Department: ", "Кафедра: "));
                     String dept = scanner.nextLine().trim();
-                    System.out.println("Должность: 1. TUTOR | 2. LECTOR | 3. SENIOR_LECTOR | 4. PROFESSOR");
-                    System.out.print("Ваш выбор: ");
+                    System.out.println(Lang.t("Должность: 1. TUTOR | 2. LECTOR | 3. SENIOR_LECTOR | 4. PROFESSOR",
+                            "Position: 1. TUTOR | 2. LECTOR | 3. SENIOR_LECTOR | 4. PROFESSOR",
+                            "Лауазым: 1. TUTOR | 2. LECTOR | 3. SENIOR_LECTOR | 4. PROFESSOR"));
+                    System.out.print(Lang.t("Ваш выбор: ", "Your choice: ", "Таңдауыңыз: "));
                     TeacherPosition position = switch (scanner.nextLine().trim()) {
                         case "1" -> TeacherPosition.TUTOR;
                         case "3" -> TeacherPosition.SENIOR_LECTOR;
@@ -117,10 +117,12 @@ public class AdminMenuHandler {
                     newUser = UserFactory.createTeacher(id, firstName, lastName, email, login, password, salary, dept, position);
                 }
                 case "4" -> {
-                    System.out.print("Оклад (Salary): ");
+                    System.out.print(Lang.t("Оклад: ", "Salary: ", "Жалақы: "));
                     double salary = Double.parseDouble(scanner.nextLine().trim());
-                    System.out.println("Тип офиса менеджера: 1. OR | 2. DEPARTMENT | 3. DEAN_OFFICE");
-                    System.out.print("Ваш выбор: ");
+                    System.out.println(Lang.t("Тип: 1. OR | 2. DEPARTMENT | 3. DEAN_OFFICE",
+                            "Type: 1. OR | 2. DEPARTMENT | 3. DEAN_OFFICE",
+                            "Түрі: 1. OR | 2. DEPARTMENT | 3. DEAN_OFFICE"));
+                    System.out.print(Lang.t("Ваш выбор: ", "Your choice: ", "Таңдауыңыз: "));
                     ManagerType mType = switch (scanner.nextLine().trim()) {
                         case "2" -> ManagerType.DEPARTMENT;
                         case "3" -> ManagerType.DEAN_OFFICE;
@@ -129,115 +131,99 @@ public class AdminMenuHandler {
                     newUser = UserFactory.createManager(id, firstName, lastName, email, login, password, salary, mType);
                 }
                 case "5" -> {
-                    System.out.print("Оклад (Salary): ");
+                    System.out.print(Lang.t("Оклад: ", "Salary: ", "Жалақы: "));
                     double salary = Double.parseDouble(scanner.nextLine().trim());
                     newUser = UserFactory.createTechSupport(id, firstName, lastName, email, login, password, salary);
                 }
                 case "6" -> {
-                    System.out.print("Оклад (Salary): ");
+                    System.out.print(Lang.t("Оклад: ", "Salary: ", "Жалақы: "));
                     double salary = Double.parseDouble(scanner.nextLine().trim());
                     newUser = UserFactory.createAdmin(id, firstName, lastName, email, login, password, salary);
                 }
                 default -> {
-                    System.out.println("❌ Ошибка: Неверный выбор роли.");
+                    System.out.println(Lang.t("Неверный выбор.", "Invalid choice.", "Жарамсыз таңдау."));
                     return;
                 }
             }
 
             if (newUser != null) {
                 university.addUser(newUser);
-                System.out.printf("✅ Успех! Пользователь %s (%s) успешно сохранен в базу данных KBTU.%n",
+                System.out.printf(Lang.t("✅ Пользователь %s (%s) добавлен.%n",
+                        "✅ User %s (%s) added.%n",
+                        "✅ Пайдаланушы %s (%s) қосылды.%n"),
                         newUser.getFullName(), newUser.getClass().getSimpleName());
             }
         } catch (NumberFormatException e) {
-            System.out.println("❌ Ошибка ввода: Числовые параметры (курс, оклад) заполнены неверно.");
+            System.out.println(Lang.t("Ошибка: введите числовое значение.", "Error: enter a number.", "Қате: сан енгізіңіз."));
         } catch (Exception e) {
-            System.out.println("❌ Ошибка при генерации сущности Фабрикой: " + e.getMessage());
+            System.out.println(Lang.t("Ошибка: ", "Error: ", "Қате: ") + e.getMessage());
         }
     }
 
     private static void handleRemoveUser(Scanner scanner) {
-        System.out.println("\n--- Удаление пользователя из базы данных ---");
+        System.out.println("\n--- " + Lang.t("Удаление пользователя", "Remove User", "Пайдаланушыны жою") + " ---");
         if (university.getUsers().isEmpty()) {
-            System.out.println("База данных пользователей пуста.");
+            System.out.println(Lang.t("База пуста.", "No users found.", "Дерекқор бос."));
             return;
         }
-
         university.getUsers().forEach(u ->
-                System.out.printf("  ID: %-8s | ФИО: %-25s | Роль: %s%n",
+                System.out.printf("  ID: %-8s | %-25s | %s%n",
                         u.getId(), u.getFullName(), u.getClass().getSimpleName()));
-
-        System.out.print("\nВведите уникальный ID пользователя для удаления: ");
+        System.out.print(Lang.t("Введите ID для удаления: ", "Enter ID to remove: ", "Жою үшін ID енгізіңіз: "));
         String id = scanner.nextLine().trim();
-
         boolean removed = university.removeUser(id);
-        if (removed) {
-            System.out.println("✅ Пользователь успешно удален из репозитория университета.");
-        } else {
-            System.out.println("❌ Ошибка: Пользователь с ID '" + id + "' не найден.");
-        }
+        System.out.println(removed
+                ? Lang.t("✅ Пользователь удалён.", "✅ User removed.", "✅ Пайдаланушы жойылды.")
+                : Lang.t("❌ Пользователь не найден.", "❌ User not found.", "❌ Пайдаланушы табылмады."));
     }
 
     private static void handleUpdateUser(Scanner scanner) {
-        System.out.println("\n--- Модификация профиля пользователя ---");
+        System.out.println("\n--- " + Lang.t("Изменение данных", "Update User", "Деректерді өзгерту") + " ---");
         if (university.getUsers().isEmpty()) {
-            System.out.println("В системе нет зарегистрированных пользователей.");
+            System.out.println(Lang.t("Нет пользователей.", "No users.", "Пайдаланушылар жоқ."));
             return;
         }
-
         university.getUsers().forEach(u ->
-                System.out.printf("  ID: %-8s | ФИО: %-25s | Логин: %s%n",
+                System.out.printf("  ID: %-8s | %-25s | %s%n",
                         u.getId(), u.getFullName(), u.getLogin()));
-
-        System.out.print("\nВведите ID пользователя для редактирования: ");
+        System.out.print(Lang.t("Введите ID: ", "Enter ID: ", "ID енгізіңіз: "));
         String id = scanner.nextLine().trim();
         User target = university.findUserById(id);
-
         if (target == null) {
-            System.out.println("❌ Ошибка: Пользователь с таким идентификатором не найден.");
+            System.out.println(Lang.t("❌ Не найден.", "❌ Not found.", "❌ Табылмады."));
             return;
         }
-
-        System.out.println("\nКакое поле вы хотите обновить?");
-        System.out.println("1. Имя (First Name)");
-        System.out.println("2. Фамилия (Last Name)");
-        System.out.println("3. Электронная почта (Email)");
-        System.out.println("4. Пароль доступа (Password)");
-        System.out.print("Ваш выбор: ");
+        System.out.println("1. " + Lang.t("Имя", "First Name", "Аты"));
+        System.out.println("2. " + Lang.t("Фамилия", "Last Name", "Тегі"));
+        System.out.println("3. " + Lang.t("Email", "Email", "Email"));
+        System.out.println("4. " + Lang.t("Пароль", "Password", "Құпия сөз"));
+        System.out.print(Lang.t("Ваш выбор: ", "Your choice: ", "Таңдауыңыз: "));
         String choice = scanner.nextLine().trim();
-
-        System.out.print("Введите новое значение: ");
+        System.out.print(Lang.t("Новое значение: ", "New value: ", "Жаңа мән: "));
         String val = scanner.nextLine().trim();
-
         switch (choice) {
             case "1" -> target.setFirstName(val);
             case "2" -> target.setLastName(val);
             case "3" -> target.setEmail(val);
             case "4" -> target.setPassword(val);
-            default  -> {
-                System.out.println("❌ Операция отменена: выбран некорректный параметр.");
-                return;
-            }
+            default  -> { System.out.println(Lang.t("Отменено.", "Cancelled.", "Бас тартылды.")); return; }
         }
-        System.out.println("✅ Данные успешно изменены для аккаунта: " + target.getFullName());
+        System.out.println(Lang.t("✅ Данные обновлены.", "✅ Updated.", "✅ Жаңартылды."));
     }
 
     private static void printLogsFromFile() {
         File logFile = new File("university.log");
         if (!logFile.exists() || logFile.length() == 0) {
-            System.out.println("Журнал системного аудита пуст или еще не сгенерирован.");
+            System.out.println(Lang.t("Журнал пуст.", "Log is empty.", "Журнал бос."));
             return;
         }
-
-        System.out.println("\n=== ВЫЧИТКА СИСТЕМНОГО ЖУРНАЛА (university.log) ===");
+        System.out.println("\n=== " + Lang.t("СИСТЕМНЫЙ ЖУРНАЛ", "SYSTEM LOG", "ЖҮЙЕ ЖУРНАЛЫ") + " ===");
         try (BufferedReader br = new BufferedReader(new FileReader(logFile))) {
             String line;
-            while ((line = br.readLine()) != null) {
-                System.out.println(line);
-            }
+            while ((line = br.readLine()) != null) System.out.println(line);
         } catch (IOException e) {
-            System.out.println("❌ Критическая ошибка при чтении файла логов: " + e.getMessage());
+            System.out.println(Lang.t("Ошибка чтения логов: ", "Log read error: ", "Журнал оқу қатесі: ") + e.getMessage());
         }
-        System.out.println("====================================================");
+        System.out.println("==========================================");
     }
 }

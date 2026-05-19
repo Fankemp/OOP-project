@@ -4,7 +4,7 @@ import university.storage.University;
 import university.users.*;
 import java.util.Optional;
 import java.util.Scanner;
-
+import university.enums.Language;
 
 public class ConsoleInterface {
     private static final University university = University.getInstance();
@@ -13,46 +13,67 @@ public class ConsoleInterface {
 
     public static void start() {
         while (true) {
-            // Если пользователь уже вошел в систему — сразу перенаправляем в его личный кабинет
             if (currentUser != null) {
                 routeUserToMenu();
                 continue;
             }
 
             System.out.println("\n========================================");
-            System.out.println("     Добро пожаловать в систему KBTU    ");
+            System.out.println(Lang.t("   Добро пожаловать в систему KBTU", "   Welcome to KBTU System", "   KBTU жүйесіне қош келдіңіз"));
             System.out.println("========================================");
-            System.out.println("1. Войти в систему");
-            System.out.println("2. Выйти из программы");
-            System.out.print("Выберите действие: ");
+            System.out.println("1. " + Lang.t("Войти в систему", "Login", "Жүйеге кіру"));
+            System.out.println("2. " + Lang.t("Сменить язык", "Switch Language", "Тілді ауыстыру"));
+            System.out.println("3. " + Lang.t("Выйти из программы", "Exit", "Бағдарламадан шығу"));
+            System.out.print(Lang.t("Выберите действие: ", "Choose action: ", "Әрекетті таңдаңыз: "));
 
             switch (scanner.nextLine().trim()) {
                 case "1" -> showLoginMenu();
                 case "2" -> {
-                    System.out.println("\n[Система]: Фоновая синхронизация и сохранение данных...");
-                    university.save(); // Автоматическое сохранение изменений при выходе
-                    System.out.println("Все изменения успешно сохранены. До встречи!");
-                    return; // Завершение работы бесконечного цикла и программы
+                    System.out.println("1. Русский (RU)");
+                    System.out.println("2. English (EN)");
+                    System.out.println("3. Қазақша (KZ)");
+                    System.out.print(Lang.t("Ваш выбор: ", "Your choice: ", "Таңдауыңыз: "));
+                    Language lang = switch (scanner.nextLine().trim()) {
+                    case "2" -> Language.ENG;
+                    case "3" -> Language.KZ;
+                    default  -> Language.RU;
+                };
+                    Lang.set(lang);
+                    System.out.println(Lang.t("✅ Язык изменён.", "✅ Language changed.", "✅ Тіл өзгертілді."));
                 }
-                default -> System.out.println("❌ Ошибка: Неверный выбор пункта меню. Попробуйте еще раз.");
+                case "3" -> {
+                    System.out.println(Lang.t("\n[Система]: Сохранение данных...",
+                            "\n[System]: Saving data...",
+                            "\n[Жүйе]: Деректер сақталуда..."));
+                    university.save();
+                    System.out.println(Lang.t("Данные сохранены. До встречи!",
+                            "Data saved. Goodbye!",
+                            "Деректер сақталды. Сау болыңыз!"));
+                    return;
+                }
+                default -> System.out.println(Lang.t("❌ Неверный выбор.", "❌ Invalid choice.", "❌ Жарамсыз таңдау."));
             }
         }
     }
 
     private static void showLoginMenu() {
-        System.out.println("\n--- [ Форма авторизации пользователя ] ---");
-        System.out.print("Введите ваш логин: ");
+        System.out.println("\n--- " + Lang.t("Форма авторизации", "Login Form", "Авторизация нысаны") + " ---");
+        System.out.print(Lang.t("Логин: ", "Login: ", "Логин: "));
         String login = scanner.nextLine().trim();
-        System.out.print("Введите ваш пароль: ");
+        System.out.print(Lang.t("Пароль: ", "Password: ", "Құпия сөз: "));
         String password = scanner.nextLine().trim();
 
         Optional<User> auth = university.authenticate(login, password);
         if (auth.isPresent()) {
             currentUser = auth.get();
-            System.out.printf("🎉 Авторизация успешна! Добро пожаловать, %s (Роль: %s)%n",
+            System.out.printf(Lang.t("🎉 Добро пожаловать, %s (%s)%n",
+                    "🎉 Welcome, %s (%s)%n",
+                    "🎉 Қош келдіңіз, %s (%s)%n"),
                     currentUser.getFullName(), currentUser.getClass().getSimpleName());
         } else {
-            System.out.println("❌ Ошибка: Неверный логин или пароль. Доступ отклонен.");
+            System.out.println(Lang.t("❌ Неверный логин или пароль.",
+                    "❌ Invalid login or password.",
+                    "❌ Логин немесе құпия сөз қате."));
         }
     }
 
@@ -73,7 +94,6 @@ public class ConsoleInterface {
             logout = TechSupportMenuHandler.show((TechSupportSpecialist) currentUser, scanner);
         }
 
-        // Если из обработчика роли вернулся true — сбрасываем текущую сессию
         if (logout) {
             currentUser = null;
         }

@@ -8,7 +8,7 @@ import university.view.ConsoleInterface;
 public class Main {
     private static final University university = University.getInstance();
 
-     static void main() {
+    public static void main(String[] args) {
         LogConfig.setup();
 
         try {
